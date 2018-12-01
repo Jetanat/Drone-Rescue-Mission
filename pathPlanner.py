@@ -1,4 +1,20 @@
+#!/usr/bin/env python
+
 import heapq
+import rospy
+from std_msgs.msg import String
+from ar_track_alvar_msgs.msg import AlvarMarkers
+from ar_track_alvar_msgs.msg import AlvarMarker
+
+#size of the drone environment, full map
+env_width = 10.0 #meters
+env_length = 10.0 #meters 
+
+#size of objection, each dot dected
+obj_width = 0.10 #meters
+obj_length = 0.10 #meters
+
+######################################
 
 MAP_MAX_X=2 #meters
 MAP_MAX_Y=1 #meters
@@ -73,8 +89,94 @@ class WorldMap:
         for y in range(len(self.map[0])-1, -1, -1):
             self.__print_obs_row(y)
 
+def return_area_detected(data):
+    # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
+    # print(data)
+    # print(type(data))
+    #ID : -> 0 : wall_width, 1 : wall_length, 2 : obstacle_one, 8 : obstacle_two, 9 : obstacle_three, 11 : landing
+    dict = {0:"wall_width",1:"wall_length", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing" }
+
+    global env_length, env_width
+    global obj_width,obj_length
+
+    lowest_left_x = -1.0
+    lowest_left_y = -1.0
+    highest_right_x = -1.0
+    highest_right_y = -1.0
+    # print(data.markers[4].pose)
+
+
+    # print(data.markers[5])
+    if(dict[data.markers[0].id]=="wall_width"):
+        print "wall_width"
+        lowest_left_x = data.markers[0].pose.pose.position.x-env_width/2
+        lowest_left_y = data.markers[0].pose.pose.position.y
+
+        highest_right_x = data.markers[0].pose.pose.position.x+env_width/2
+        highest_right_y = data.markers[0].pose.pose.position.y
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
+    if(dict[data.markers[1].id]=="wall_length"):
+        print "wall_length"
+        lowest_left_x=data.markers[1].pose.pose.position.x
+        lowest_left_y=data.markers[1].pose.pose.position.y-env_length/2
+
+        highest_right_x = data.markers[1].pose.pose.position.x
+        highest_right_y = data.markers[1].pose.pose.position.y+env_length/2
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
+    if(dict[data.markers[2].id]=="obstacle_one"):
+        print "obstacle_one"
+        lowest_left_x=data.markers[2].pose.pose.position.x-obj_width/2
+        lowest_left_y=data.markers[2].pose.pose.position.y-obj_width/2
+
+        highest_right_x = data.markers[2].pose.pose.position.x+obj_width/2
+        highest_right_y = data.markers[2].pose.pose.position.y+obj_width/2
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
+    if(dict[data.markers[3].id]=="obstacle_two"):
+        print "obstacle_two"
+        lowest_left_x=data.markers[3].pose.pose.position.x-obj_width/2
+        lowest_left_y=data.markers[3].pose.pose.position.y-obj_width/2
+
+        highest_right_x = data.markers[3].pose.pose.position.x+obj_width/2
+        highest_right_y = data.markers[3].pose.pose.position.y+obj_width/2
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
+    if(dict[data.markers[4].id]=="obstacle_three"):
+        print "obstacle_three"
+        lowest_left_x=data.markers[4].pose.pose.position.x-obj_width/2
+        lowest_left_y=data.markers[4].pose.pose.position.y-obj_width/2
+
+        highest_right_x = data.markers[4].pose.pose.position.x+obj_width/2
+        highest_right_y = data.markers[4].pose.pose.position.y+obj_width/2
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
+    if(dict[data.markers[5].id]=="landing"):
+        print "landing"
+        lowest_left_x=data.markers[5].pose.pose.position.x
+        lowest_left_y=data.markers[5].pose.pose.position.y
+
+        highest_right_x = data.markers[5].pose.pose.position.x
+        highest_right_y = data.markers[5].pose.pose.position.y
+        return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+
 
 def main():
+
+    # In ROS, nodes are uniquely named. If two nodes with the same
+    # node are launched, the previous one is kicked off. The
+    # anonymous=True flag means that rospy will choose a unique
+    # name for our 'listener' node so that multiple listeners can
+    # run simultaneously.
+    rospy.init_node('listener', anonymous=True)
+
+    # rospy.Subscriber("/ar_pose_marker", AlvarMarkers, callback)
+    rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
+
+    # spin() simply keeps python from exiting until this node is stopped
+    rospy.spin()
+
     world_map = WorldMap()
     world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
     world_map.set_feature((1.5,0.8),(1.7,1), GOAL)
