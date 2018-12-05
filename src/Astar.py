@@ -16,7 +16,7 @@ class PriorityQueue:
 class Grid:
 	def __init__(self, width, height):
 		self.width = width
-		self.heigh = height
+		self.height = height
 		self.walls = []
 
 	def inbound(self, id):
@@ -72,3 +72,13 @@ def a_star(graph, start, goal):
 				camefrom[next] = current
 
 	return camefrom, costsofar
+
+def path(camefrom, start, goal):
+	current = goal
+	path = []
+	while current != start:
+		path.append(current)
+		currnet = came_from[current]
+	path.append(start)
+	path.reverse()
+	return path
