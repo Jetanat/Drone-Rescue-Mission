@@ -62,14 +62,14 @@ def a_star(graph, start, goal):
 		if (current == goal):
 			break
 
-		for next in graph.neighbors(current):
-			newcost = costsofar[current] + graph.cost(current, next)
+		for nextthing in graph.neighbors(current):
+			newcost = costsofar[current] + graph.cost(current, nextthing)
 
-			if next not in costsofar or newcost < costsofar[next]:
-				costsofar[next] = newcost
-				priority = newcost + heuristic(goal, next)
-				frontier.put(next, priority)
-				camefrom[next] = current
+			if nextthing not in costsofar or newcost < costsofar[nextthing]:
+				costsofar[nextthing] = newcost
+				priority = newcost + heuristic(goal, nextthing)
+				frontier.put(nextthing, priority)
+				camefrom[nextthing] = current
 
 	return camefrom, costsofar
 
