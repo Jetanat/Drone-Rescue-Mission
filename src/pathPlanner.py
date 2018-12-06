@@ -40,20 +40,47 @@ class WorldMap:
         j = int((y-y%MAP_RESOLUTION)/MAP_RESOLUTION)
         return i,j
 
-    def dist_to_goal(x,y):
+    def _map_to_world(Self, i, j):
+        x = i*MAP_RESOLUTION
+        y = j*MAP_RESOLUTION
+        return x,y
+
+    def _is_open(self, i, j):
+        return self.map[i][j]==OPEN or self.map[i][j]==GOAL
+
+    def neighbors(self, cell):
+        i, j = self._world_to_map(cell[0], cell[1])
+        neigh = []
+        if self._is_open(i-1,j):
+            neigh.append([self._map_to_world(i-1,j)]
+        if self._is_open(i+1,j):
+            neigh.append([self._map_to_world(i,j-1)]
+        if self._is_open(i,j-1):
+            neigh.append([self._map_to_world(i,j-1)]
+        if self._is_open(i,j+1):
+            neigh.append([self._map_to_world(i,j+1)]
+        return neigh 
+
+    def dist_to_goal(self, cell):
         if(self.goal == None):
             return -1
-        i,j = self._world_to_map(x,y)
+        i,j = self._world_to_map(cell[0],cell[1])
         return ((i-self.goal[0])**2 + (j-self.goal[1])**2)**0.5
 
     def set_feature(self, low, high, status):
         #round input (x,y) to map resolution
         #round down min
         min_x, min_y = self._world_to_map(low[0],low[1])
+
         #round up max
         max_x, max_y = self._world_to_map(high[0], high[1])
-        max_x=int((high[0]+(MAP_RESOLUTION-high[0]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
-        max_y=int((high[1]+(MAP_RESOLUTION-high[1]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
+        print("(%s %s), (%s, %s)" %(min_x, min_y, max_x, max_y))
+        if(max_x==min_x):
+            max_x+=1
+        if(max_y==max_y):
+            max_y+=1
+        #max_x=int((high[0]+(MAP_RESOLUTION-high[0]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
+        #max_y=int((high[1]+(MAP_RESOLUTION-high[1]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
         for i in range(min_x, max_x):
             for j in range(min_y, max_y):
                 self.map[i][j] = status
@@ -62,7 +89,7 @@ class WorldMap:
 
     def _inflate_cell(self, x, y):
         radius=int(ROBOT_RADIUS/MAP_RESOLUTION)
-        for i in range(max(0, x-radius), min(int(MAP_MAX_X/MAP_RESOLUTION)+1, x+radius)):
+        for i in range(max(0, x-radius+1), min(int(MAP_MAX_X/MAP_RESOLUTION)+1, x+radius)):
             for j in range(max(0, y-radius), min(int(MAP_MAX_Y/MAP_RESOLUTION)+1, y+radius)):
                 if(self.map[i][j] == OPEN):
                     self.map[i][j] = INFLATION
@@ -70,7 +97,7 @@ class WorldMap:
     def inflate(self):
         for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1):
             for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1):
-                if(self.map[x][y]  == OBSTACLE):
+                if(self.map[x][y] == OBSTACLE):
                     self._inflate_cell(x,y)
 
     def _print_obs_row(self, y):
@@ -161,13 +188,13 @@ def main():
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
-    rospy.init_node('listener', anonymous=True)
+    #rospy.init_node('listener', anonymous=True)
 
     # rospy.Subscriber("/ar_pose_marker", AlvarMarkers, callback)
-    rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
+    #rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
 
     # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
+    #rospy.spin()
 
     world_map = WorldMap()
     world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
