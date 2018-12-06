@@ -52,13 +52,13 @@ class WorldMap:
         i, j = self._world_to_map(cell[0], cell[1])
         neigh = []
         if self._is_open(i-1,j):
-            neigh.append([self._map_to_world(i-1,j)]
+            neigh.append([self._map_to_world(i-1,j)])
         if self._is_open(i+1,j):
-            neigh.append([self._map_to_world(i,j-1)]
+            neigh.append([self._map_to_world(i+1,j)])
         if self._is_open(i,j-1):
-            neigh.append([self._map_to_world(i,j-1)]
+            neigh.append([self._map_to_world(i,j-1)])
         if self._is_open(i,j+1):
-            neigh.append([self._map_to_world(i,j+1)]
+            neigh.append([self._map_to_world(i,j+1)])
         return neigh 
 
     def dist_to_goal(self, cell):
@@ -74,7 +74,6 @@ class WorldMap:
 
         #round up max
         max_x, max_y = self._world_to_map(high[0], high[1])
-        print("(%s %s), (%s, %s)" %(min_x, min_y, max_x, max_y))
         if(max_x==min_x):
             max_x+=1
         if(max_y==max_y):
