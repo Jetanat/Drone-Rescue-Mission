@@ -43,38 +43,38 @@ class GridWeights(Grid):
 		return self.weights.get(tonode, 1)
 
 
-def heuristic(a, b):
+def dist_to_goal(a, b): #Simple distance heruristic
 	(x1, y1) = a
 	(x2, y2) = b
 	return abs(x1 - x2) + abs(y1 - y2)
 
 def a_star(graph, start, goal):
 	frontier = PriorityQueue()
-	frontier.put(start, 0)
+	frontier.put(start, 0) #Push start to the priority queue
 	camefrom = {}
 	costsofar = {}
 	camefrom[start] = None
 	costsofar[start] = 0
 
-	while not frontier.empty():
-		current = frontier.get()
+	while not frontier.empty(): #If the grid is not empty
+		current = frontier.get() #Pop the current element 
 
-		if (current == goal):
+		if (current == goal): 
 			break
 
-		for next in graph.neighbors(current):
-			newcost = costsofar[current] + graph.cost(current, next)
+		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
+			newcost = costsofar[current] + graph.cost(current, nextthing) #Looks at costs of moving to other cells
 
-			if next not in costsofar or newcost < costsofar[next]:
-				costsofar[next] = newcost
-				priority = newcost + heuristic(goal, next)
-				frontier.put(next, priority)
-				camefrom[next] = current
+			if nextthing not in costsofar or newcost < costsofar[nextthing]: #Update
+				costsofar[nextthing] = newcost
+				priority = newcost + dist_to_goal(goal, nextthing)
+				frontier.put(nextthing, priority)
+				camefrom[nextthing] = current
 
 	return camefrom, costsofar
 
-def path(camefrom, start, goal):
-	current = goal
+def path(camefrom, start, goal): #Translates camefrom list into an actual path
+	current = goal 
 	path = []
 	while current != start:
 		path.append(current)
