@@ -32,8 +32,8 @@ ROBOT_RADIUS=ROBOT_RADIUS+MAP_RESOLUTION-ROBOT_RADIUS%MAP_RESOLUTION
 
 class WorldMap:
     def __init__(self):
-        self.map = [[0 for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1)] for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1)]
-        self.goal=None
+        self._map = [[0 for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1)] for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1)]
+        self._goal=None
 
     def _world_to_map(self,x,y):
         i = int((x-x%MAP_RESOLUTION)/MAP_RESOLUTION)
@@ -46,7 +46,7 @@ class WorldMap:
         return x,y
 
     def _is_open(self, i, j):
-        return self.map[i][j]==OPEN or self.map[i][j]==GOAL
+        return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
     def neighbors(self, cell):
         i, j = self._world_to_map(cell[0], cell[1])
@@ -65,45 +65,45 @@ class WorldMap:
         if(self.goal == None):
             return -1
         i,j = self._world_to_map(cell[0],cell[1])
-        return ((i-self.goal[0])**2 + (j-self.goal[1])**2)**0.5
+        return ((i-self._goal[0])**2 + (j-self._goal[1])**2)**0.5
 
     def set_feature(self, low, high, status):
         #round input (x,y) to map resolution
         #round down min
-        min_x, min_y = self._world_to_map(low[0],low[1])
+        min_i, min_j = self._world_to_map(low[0],low[1])
 
         #round up max
-        max_x, max_y = self._world_to_map(high[0], high[1])
-        if(max_x==min_x):
-            max_x+=1
-        if(max_y==max_y):
-            max_y+=1
+        max_i, max_j = self._world_to_map(high[0], high[1])
+        if(max_i==min_i):
+            max_i+=1
+        if(max_j==max_j):
+            max_j+=1
         #max_x=int((high[0]+(MAP_RESOLUTION-high[0]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
         #max_y=int((high[1]+(MAP_RESOLUTION-high[1]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
-        for i in range(min_x, max_x):
-            for j in range(min_y, max_y):
-                self.map[i][j] = status
-        if(status==GOAL):
-            self.goal=((min_x+max_x)/2, (min_y+max_y)/2)
+        for i in range(min_i, max_i):
+            for j in range(min_j, max_j):
+                self._map[i][j] = status
+                if status == OBSTACLE:
+                    self._inflate_cell(i,j)
 
-    def _inflate_cell(self, x, y):
+    def _inflate_cell(self, c_i, c_j):
         radius=int(ROBOT_RADIUS/MAP_RESOLUTION)
-        for i in range(max(0, x-radius+1), min(int(MAP_MAX_X/MAP_RESOLUTION)+1, x+radius)):
-            for j in range(max(0, y-radius), min(int(MAP_MAX_Y/MAP_RESOLUTION)+1, y+radius)):
-                if(self.map[i][j] == OPEN):
-                    self.map[i][j] = INFLATION
+        for i in range(max(0, c_i-radius), min(int(MAP_MAX_X/MAP_RESOLUTION)+1, c_i+radius+1)):
+            for j in range(max(0, c_j-radius), min(int(MAP_MAX_Y/MAP_RESOLUTION)+1, c_j+radius+1)):
+                if(self._map[i][j] == OPEN):
+                    self._map[i][j] = INFLATION
 
     def inflate(self):
         for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1):
             for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1):
-                if(self.map[x][y] == OBSTACLE):
+                if(self._map[x][y] == OBSTACLE):
                     self._inflate_cell(x,y)
 
     def _print_obs_row(self, y):
-        print([col[y] for col in self.map])
+        print([col[y] for col in self._map])
 
     def print_obs_map(self):
-        for y in range(len(self.map[0])-1, -1, -1):
+        for y in range(len(self._map[0])-1, -1, -1):
             self._print_obs_row(y)
 
 def return_area_detected(data):
