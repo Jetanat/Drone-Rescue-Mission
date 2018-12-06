@@ -1,4 +1,5 @@
 import heapq
+import pathPlanner as p
 
 class PriorityQueue:
 	def __init__(self):
@@ -82,3 +83,15 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	path.append(start)
 	path.reverse()
 	return path
+
+def main():
+	p.world_map = WorldMap()
+	p.world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
+	p.world_map.set_feature((1.5,0.8),(1.7,1), GOAL)
+	p.world_map.inflate()
+	p.world_map.print_obs_map()
+
+	path(a_star(p.world_map, (0,0), (5,5)), (0,0), (5,5))
+if __name__ == "__main__":
+	main()
+	exit(0)
