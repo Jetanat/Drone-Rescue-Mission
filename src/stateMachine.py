@@ -10,13 +10,13 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 25
+FLIGHT_TIME = 10.0
 #STATES = {0: "first_turn", 1: "second_turn", 2: "run_Astar", 3: "micro_plan", 4: "action", 5: "land" }
-STATE = 2
-READ_INTERVAL = 1.0
+STATE = 0
+READ_INTERVAL = 2.0
 PI = 3.1415926535897
 angular_speed = 45*2*PI/360 	#45 degrees per second
-linear_speed = 1
+linear_speed = 0.5
 
 
 
@@ -30,7 +30,7 @@ def rotate(clockwise,angle):
 
 	t0 = time.time()
 	current_angle = 0
-	relative_angle = angle*2*PI/360 #POSE
+	relative_angle = (angle-angle/2)*2*PI/360 #POSE
 
 	while(current_angle < relative_angle):
 		drone_pub.publish(vel_msg)
@@ -43,6 +43,7 @@ def rotate(clockwise,angle):
 	return
 
 def x_translate(direction,length):
+	######### 0.5 Length = 50 inches #####
 	global drone_pub
 	#forward = 1
 	vel_msg = Twist()
@@ -53,7 +54,7 @@ def x_translate(direction,length):
 
 	t0 = time.time()
 	current_linear = 0
-	relative_linear = length 
+	relative_linear = length - length*0.6 
 
 	while(current_linear < relative_linear):
 		drone_pub.publish(vel_msg)
@@ -76,7 +77,7 @@ def y_translate(direction,length):
 
 	t0 = rospy.Time.now().to_sec()
 	current_linear = 0
-	relative_linear = length 
+	relative_linear = length - length*0.6 
 
 	while(current_linear < relative_linear):
 		drone_pub.publish(vel_msg)
@@ -92,72 +93,70 @@ def y_translate(direction,length):
 
 def main():
 	#initialize ros nodes
-	global drone_pub
+	global drone_pub, STATE
 	rospy.init_node("statemachine", anonymous=True)
-	rospy.loginfo("HelloNode")
 	drone_pub = rospy.Publisher("/bebop/cmd_vel", Twist, queue_size=1)
 	takeoff_pub = rospy.Publisher("/bebop/takeoff", Empty, queue_size=1)
 	landing_pub = rospy.Publisher("/bebop/land", Empty, queue_size=1)
-	ar_tags = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, planner.average_ar_tag)
+	#ar_tags = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, planner.average_ar_tag)
 	world_map = planner.WorldMap()
 
+	time.sleep(1.)
     #takeoff and start run timer
-	#takeoff_pub.publish(Empty())
+	takeoff_pub.publish(Empty())
 	time.sleep(2.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
-	
-	STATE = 2
-	
+		
 	last_call = time.time()
 	start_time = time.time()
+	print(last_call)
 	#while loop for states and flight time
 	while not rospy.is_shutdown() and time.time() - start_time < FLIGHT_TIME:
 		if STATE == 0:
-			if True: #time.time() - last_call > READ_INTERVAL:
-				print ("Rotate 0")
-				#time.sleep(1.)
-				last_call = time.time()
-				#turn clockwise 45 deg to read ar tags
-				#rotate(1,45)
-				STATE = 2
-				print("now state1")
-				ar_tags.unregister()
-    	
-    	if STATE == 1:
-    		print("state1")
-    		if True: #time.time() - last_call > READ_INTERVAL:
-    			print ("Rotate 1")
-    			#time.sleep(1.)
-    			last_call = time.time()
-    			ar_tags.unregister()
-    			#turn to counter-clockwise 45 deg to read ar tags
-    			#rotate(0,90)
-    			STATE = 2
-
-    	#print ("Hello?")
-    	if STATE == 2:
-			ar_tags.unregister()
 			if time.time() - last_call > READ_INTERVAL:
+				print ("Rotate 0")
+				#turn clockwise 45 deg to read ar tags
+				rotate(1,45)
 				last_call = time.time()
+				print(last_call)
+				STATE = 1
+
+		if STATE == 1:
+			if time.time() - last_call > READ_INTERVAL:
+				print ("Rotate 1")
+				#turn to counter-clockwise 45 deg to read ar tags
+				rotate(0,90)
+				last_call = time.time()
+				print(last_call)
+				STATE = 2
+
+		if STATE == 2:
+			if time.time() - last_call > READ_INTERVAL:
+				print ("Rotate 2")
 				#return to forward and load into map
-				#rotate(1,45)
+				rotate(1,45)
+				last_call = time.time()
+				print(last_call)
 				time.sleep(1.)
-				ar_tags.unregister()
-				print ("Add to map")
-				data = planner.averageAreaCoor #([lowtuple], [hightuple])
-				for index in range(0,6):
-					if data[0][0][index] != -1.0:
-						if index == 4:
-							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
-						else:
-							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+				x_translate(1,0.5)
+				time.sleep(1.)
+				#x_translate(0,0.5)
+				time.sleep(10.)
+				# print ("Add to map")
+				# data = planner.averageAreaCoor #([lowtuple], [hightuple])
+				# for index in range(0,6):
+				# 	if data[0][0][index] != -1.0:
+				# 		if index == 4:
+				# 			world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+				# 		else:
+				# 			world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 
-				world_map.print_obs_map()
-				path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
-				print path
-				STATE = 4
+				# world_map.print_obs_map()
+				# path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
+				# print path
+				# STATE = 3
 
-    	if STATE == 4:
+    	if STATE == 3:
     	 	temp = 0 
 
     	if STATE == 5:
@@ -165,10 +164,8 @@ def main():
 
 
 
-	#landing_pub.publish(Empty())
+	landing_pub.publish(Empty())
 	print ("Shutdown")
 
 if __name__ == '__main__':
 	main()
-	#landing_pub.publish(Empty())
-	#print ("Shutdown")
