@@ -23,6 +23,8 @@ pose_y = 0
 pose_z = 1
 pose_theta = 0
 
+current_path = 0
+
 
 def rotate(clockwise,angle):
 	global drone_pub, pose_theta
@@ -49,7 +51,6 @@ def rotate(clockwise,angle):
 	return
 
 def x_translate(direction,length):
-	######### 0.5 Length = 50 inches #####
 	global drone_pub, pose_x
 	#forward = 1
 	vel_msg = Twist()
@@ -116,7 +117,7 @@ def set_pose_destination(x,y,theta):
 
 def main():
 	#initialize ros nodes
-	global drone_pub, STATE, pose_x, pose_y, pose_z, pose_theta
+	global drone_pub, STATE, pose_x, pose_y, pose_z, pose_theta, current_path
 	rospy.init_node("statemachine", anonymous=True)
 	drone_pub = rospy.Publisher("/bebop/cmd_vel", Twist, queue_size=1)
 	takeoff_pub = rospy.Publisher("/bebop/takeoff", Empty, queue_size=1)
@@ -141,11 +142,11 @@ def main():
 				print(data)
 				print(data[0][0][0])
 				for index in range(0,6):
-					#if data[0][0][index] != -1.0:
-					if index == 4:
-						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
-					else:
-						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+					if data[0][0][index] != "NO_DETECTION":
+						if index == 4:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+						else:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 				world_map.print_obs_map()
 				print ("NOW Rotate 0")
 				#turn clockwise 45 deg to read ar tags
@@ -199,12 +200,10 @@ def main():
 				STATE = 3
 
     	if STATE == 3:
-    	 	temp = 0 
+    	 	micro_plan(path) 
 
     	if STATE == 5:
     		temp = 0
-
-
 
 	landing_pub.publish(Empty())
 	print ("Shutdown")

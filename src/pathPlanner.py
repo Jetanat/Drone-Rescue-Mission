@@ -7,12 +7,12 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 from ar_track_alvar_msgs.msg import AlvarMarker
 
 #size of the drone environment, full map
-env_width = 10.0 #meters
-env_length = 10.0 #meters
+env_width = 4.0 #meters
+env_length = 4.0 #meters
 
 #size of objection, each dot dected
-obj_width = 0.10 #meters
-obj_length = 0.10 #meters
+obj_width = 0.20 #meters
+obj_length = 0.20 #meters
 
 #numbers average each five in array
 numbers_to_average = 5
@@ -36,10 +36,10 @@ averageAreaCoor = None
 
 ######################################
 
-MAP_MAX_X=0.5 #meters
-MAP_MAX_Y=0.5 #meters
-MAP_MIN_X=-0.5
-MAP_MIN_Y=-0.5
+MAP_MAX_X=2 #meters
+MAP_MAX_Y=2 #meters
+MAP_MIN_X=-2
+MAP_MIN_Y=-2
 MAP_RESOLUTION=0.1 #grid square size
 
 ROBOT_RADIUS=0.2
@@ -218,7 +218,7 @@ def return_area_detected(data):
 
 
 	currentAreaCoor = ([lowest_left_x_new,lowest_left_y_new],[highest_right_x_new,highest_right_y_new])
-	print(currentAreaCoor)
+	# print(currentAreaCoor)
 	
 
 def main():
