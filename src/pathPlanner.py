@@ -127,129 +127,59 @@ class WorldMap:
             self._print_obs_row(y)
 
 def return_area_detected(data):
+	global env_length
+	global env_width
+	global obj_width
+	global obj_length
+	global currentAreaCoor
     # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
     # print(data)
     # print(type(data))
     #ID : -> 0 : wall_width, 1 : obstacle_one, 2 : obstacle_two, 3 : obstacle_three, 4 : landing, 5 : wall_length
-    no_dict_okay = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",13:"wall_length"}
-    # data = {0:[0,11,2],1:[2,1,22],2:[8,2,15],3:[9,15,13],4:[11,19,11],5:[13,1,0]}
-    global env_length, env_width
-    global obj_width,obj_length
-    global currentAreaCoor
+	dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",13:"wall_length"}
+	dict_param_x_low = {0:-env_width/2, 2:-obj_width/2, 8:-obj_width/2, 9:-obj_width/2,11:0,13:0}
+	dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,13:-env_length/2}
+	dict_param_x_high = {0:+env_width/2, 2:+obj_width/2, 8:+obj_width/2, 9:+obj_width/2,11:0,13:0}
+	dict_param_y_high = {0:0, 2:+obj_length/2, 8:+obj_length/2, 9:+obj_length/2,11:0,13:+env_length/2}
 
-    lowest_left_x = []
-    lowest_left_y = []
-    highest_right_x = []
-    highest_right_y = []
-    for i in range(0,6):
-        lowest_left_x.append(-1.0)
-        lowest_left_y.append(-1.0)
-        highest_right_x.append(-1.0)
-        highest_right_y.append(-1.0)
-        # print(data.markers[4].pose)
 
-    signal = []
-    for i in range(0,6):
-        signal.append(True)
-    #check KeyError
-    for i in range(0,6):
-        try:
-            data.markers[i].id
-        except IndexError:
-            signal[i]=False
+	lowest_left_x = []
+	lowest_left_y = []
+	highest_right_x = []
+	highest_right_y = []
+	for i in range(0,6):
+	    lowest_left_x.append(-1.0)
+	    lowest_left_y.append(-1.0)
+	    highest_right_x.append(-1.0)
+	    highest_right_y.append(-1.0)
+	    # print(data.markers[4].pose)
 
-    if(signal[0]): #"wall_width"
-        print "wall_width"
-        lowest_left_x[0] = data.markers[0].pose.pose.position.x-env_width/2
-        lowest_left_y[0] = data.markers[0].pose.pose.position.y
+	signal = []
+	for i in range(0,6):
+	    signal.append(True)
+	#check KeyError
+	for i in range(0,6):
+	    try:
+	        data.markers[i].id
+	    except IndexError:
+	        signal[i]=False
 
-        highest_right_x[0] = data.markers[0].pose.pose.position.x+env_width/2
-        highest_right_y[0] = data.markers[0].pose.pose.position.y
-    else:
-        lowest_left_x[0] = "NO_DETECTION"
-        lowest_left_y[0] = "NO_DETECTION"
 
-        highest_right_x[0] = "NO_DETECTION"
-        highest_right_y[0] = "NO_DETECTION"
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+	for i in range(0,6):
+		if(signal[i]):
+			print(dict_printer[data.markers[i].id])
+			lowest_left_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_low[data.markers[i].id]
+			lowest_left_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_low[data.markers[i].id]
+			highest_right_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_high[data.markers[i].id]
+			highest_right_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_high[data.markers[i].id]
+	   	else:
+			lowest_left_x[i] = "NO_DETECTION"
+			lowest_left_y[i] = "NO_DETECTION"
 
-    if(signal[1]): #"obstacle_one"
-        print("obstacle_one")
-        lowest_left_x[1]=data.markers[1].pose.pose.position.x-obj_width/2
-        lowest_left_y[1]=data.markers[1].pose.pose.position.y-obj_width/2
-
-        highest_right_x[1] = data.markers[1].pose.pose.position.x+obj_width/2
-        highest_right_y[1] = data.markers[1].pose.pose.position.y+obj_width/2
-    else:
-        lowest_left_x[1] = "NO_DETECTION"
-        lowest_left_y[1] = "NO_DETECTION"
-
-        highest_right_x[1] = "NO_DETECTION"
-        highest_right_y[1] = "NO_DETECTION"
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
-
-    if(signal[2]): #"obstacle_two"
-        print("obstacle_two")
-        lowest_left_x[2]=data.markers[2].pose.pose.position.x-obj_width/2
-        lowest_left_y[2]=data.markers[2].pose.pose.position.y-obj_width/2
-
-        highest_right_x[2] = data.markers[2].pose.pose.position.x+obj_width/2
-        highest_right_y[2] = data.markers[2].pose.pose.position.y+obj_width/2
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
-    else:
-        lowest_left_x[2] = "NO_DETECTION"
-        lowest_left_y[2] = "NO_DETECTION"
-
-        highest_right_x[2] = "NO_DETECTION"
-        highest_right_y[2] = "NO_DETECTION"
-
-    if(signal[3]): #"obstacle_three"
-        print("obstacle_three")
-        lowest_left_x[3]=data.markers[3].pose.pose.position.x-obj_width/2
-        lowest_left_y[3]=data.markers[3].pose.pose.position.y-obj_width/2
-
-        highest_right_x[3] = data.markers[3].pose.pose.position.x+obj_width/2
-        highest_right_y[3] = data.markers[3].pose.pose.position.y+obj_width/2
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
-    else:
-        lowest_left_x[3] = "NO_DETECTION"
-        lowest_left_y[3] = "NO_DETECTION"
-
-        highest_right_x[3] = "NO_DETECTION"
-        highest_right_y[3] = "NO_DETECTION"
-
-    if(signal[4]): #"landing"
-        print("landing")
-        lowest_left_x[4]=data.markers[4].pose.pose.position.x
-        lowest_left_y[4]=data.markers[4].pose.pose.position.y
-
-        highest_right_x[4] = data.markers[4].pose.pose.position.x
-        highest_right_y[4] = data.markers[4].pose.pose.position.y
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
-    else:
-        lowest_left_x[4] = "NO_DETECTION"
-        lowest_left_y[4] = "NO_DETECTION"
-
-        highest_right_x[4] = "NO_DETECTION"
-        highest_right_y[4] = "NO_DETECTION"
-
-    if(signal[5]): #"wall_length"
-        print("wall_length")
-        lowest_left_x[5]=data.markers[5].pose.pose.position.x
-        lowest_left_y[5]=data.markers[5].pose.pose.position.y-env_length/2
-
-        highest_right_x[5] = data.markers[5].pose.pose.position.x
-        highest_right_y[5] = data.markers[5].pose.pose.position.y+env_length/2
-        # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
-    else:
-        lowest_left_x[5] = "NO_DETECTION"
-        lowest_left_y[5] = "NO_DETECTION"
-
-        highest_right_x[5] = "NO_DETECTION"
-        highest_right_y[5] = "NO_DETECTION"
-
-    currentAreaCoor = ([lowest_left_x,lowest_left_y],[highest_right_x,highest_right_y])
-    # print(currentAreaCoor)
+			highest_right_x[i] = "NO_DETECTION"
+			highest_right_y[i] = "NO_DETECTION"
+	currentAreaCoor = ([lowest_left_x,lowest_left_y],[highest_right_x,highest_right_y])
+	print(currentAreaCoor)
 
 
 def main():
