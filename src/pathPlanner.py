@@ -36,8 +36,10 @@ averageAreaCoor = None
 
 ######################################
 
-MAP_MAX_X=2 #meters
-MAP_MAX_Y=1 #meters
+MAP_MAX_X=0.5 #meters
+MAP_MAX_Y=0.5 #meters
+MAP_MIN_X=-0.5
+MAP_MIN_Y=-0.5
 MAP_RESOLUTION=0.1 #grid square size
 
 ROBOT_RADIUS=0.2
@@ -52,13 +54,23 @@ ROBOT_RADIUS=ROBOT_RADIUS+MAP_RESOLUTION-ROBOT_RADIUS%MAP_RESOLUTION
 
 class WorldMap:
     def __init__(self):
-        self._map = [[0 for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1)] for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1)]
+        self._map = [[0 for y in range(int((MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION)+1)] for x in range(int((MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION)+1)]
         self._goal=None
 
     def _world_to_map(self,x,y):
-        i = int((x-x%MAP_RESOLUTION)/MAP_RESOLUTION)
-        j = int((y-y%MAP_RESOLUTION)/MAP_RESOLUTION)
-        return i,j
+        x = x-MAP_MIN_X+MAP_RESOLUTION/2
+        y = y-MAP_MIN_Y+MAP_RESOLUTION/2
+        i = (x-x%MAP_RESOLUTION)/MAP_RESOLUTION
+        j = (y-y%MAP_RESOLUTION)/MAP_RESOLUTION
+        if i < 0:
+            i=0
+        if j < 0:
+            j=0
+        if i > (MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION:
+            i = (MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION
+        if j > (MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION:
+            j = (MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION
+        return int(i),int(j)
 
     def _map_to_world(Self, i, j):
         x = i*MAP_RESOLUTION
@@ -88,34 +100,28 @@ class WorldMap:
         return ((i-self._goal[0])**2 + (j-self._goal[1])**2)**0.5
 
     def set_feature(self, low, high, status):
-        #round input (x,y) to map resolution
-        #round down min
         min_i, min_j = self._world_to_map(low[0],low[1])
-
-        #round up max
         max_i, max_j = self._world_to_map(high[0], high[1])
-        if(max_i==min_i):
-            max_i+=1
-        if(max_j==max_j):
-            max_j+=1
-        #max_x=int((high[0]+(MAP_RESOLUTION-high[0]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
-        #max_y=int((high[1]+(MAP_RESOLUTION-high[1]%MAP_RESOLUTION)+MAP_RESOLUTION)/MAP_RESOLUTION)
-        for i in range(min_i, max_i):
-            for j in range(min_j, max_j):
+#        if(max_i==min_i):
+#            max_i+=1
+#        if(max_j==max_j):
+#            max_j+=1
+        for i in range(min_i, max_i+1):
+            for j in range(min_j, max_j+1):
                 self._map[i][j] = status
                 if status == OBSTACLE:
                     self._inflate_cell(i,j)
 
     def _inflate_cell(self, c_i, c_j):
         radius=int(ROBOT_RADIUS/MAP_RESOLUTION)
-        for i in range(max(0, c_i-radius), min(int(MAP_MAX_X/MAP_RESOLUTION)+1, c_i+radius+1)):
-            for j in range(max(0, c_j-radius), min(int(MAP_MAX_Y/MAP_RESOLUTION)+1, c_j+radius+1)):
+        for i in range(max(int(MAP_MIN_X/MAP_RESOLUTION), c_i-radius+1), min(int((MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION)+1, c_i+radius)):
+            for j in range(max(int(MAP_MIN_X/MAP_RESOLUTION), c_j-radius+1), min(int((MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION)+1, c_j+radius)):
                 if(self._map[i][j] == OPEN):
                     self._map[i][j] = INFLATION
 
     def inflate(self):
-        for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1):
-            for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1):
+        for x in range(int(MAP_MAX_X/MAP_RESOLUTION)+1-int(MAP_MIN_X/MAP_RESOLUTION)):
+            for y in range(int(MAP_MAX_Y/MAP_RESOLUTION)+1-int(MAP_MIN_Y/MAP_RESOLUTION)):
                 if(self._map[x][y] == OBSTACLE):
                     self._inflate_cell(x,y)
 
@@ -125,6 +131,7 @@ class WorldMap:
     def print_obs_map(self):
         for y in range(len(self._map[0])-1, -1, -1):
             self._print_obs_row(y)
+
 
 def return_area_detected(data):
     # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
@@ -159,7 +166,7 @@ def return_area_detected(data):
             signal[i]=False
 
     if(signal[0]): #"wall_width"
-        print "wall_width"
+        print("wall_width")
         lowest_left_x[0] = data.markers[0].pose.pose.position.x-env_width/2
         lowest_left_y[0] = data.markers[0].pose.pose.position.y
 
@@ -268,9 +275,9 @@ def main():
     rospy.spin()
 
     world_map = WorldMap()
-    world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
-    world_map.set_feature((1.5,0.8),(1.7,1), GOAL)
-    world_map.inflate()
+    world_map.set_feature((-.1,-.1),(0,0), OBSTACLE)
+    world_map.set_feature((0.1,0.1),(.4,.4), GOAL)
+    #world_map.inflate()
     world_map.print_obs_map()
 
 
