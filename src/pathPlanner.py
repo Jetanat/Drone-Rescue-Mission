@@ -133,6 +133,7 @@ class WorldMap:
             self._print_obs_row(y)
 
 
+
 def return_area_detected(data):
 	global env_length
 	global env_width
@@ -142,32 +143,37 @@ def return_area_detected(data):
     # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
     # print(data)
     # print(type(data))
-    #ID : -> 0 : wall_width, 1 : obstacle_one, 2 : obstacle_two, 3 : obstacle_three, 4 : landing, 5 : wall_length
-	dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",13:"wall_length"}
-	dict_param_x_low = {0:-env_width/2, 2:-obj_width/2, 8:-obj_width/2, 9:-obj_width/2,11:0,13:0}
-	dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,13:-env_length/2}
-	dict_param_x_high = {0:+env_width/2, 2:+obj_width/2, 8:+obj_width/2, 9:+obj_width/2,11:0,13:0}
-	dict_param_y_high = {0:0, 2:+obj_length/2, 8:+obj_length/2, 9:+obj_length/2,11:0,13:+env_length/2}
+
+	dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
+	dict_param_x_low = {0:-env_width/2, 2:-obj_width/2, 8:-obj_width/2, 9:-obj_width/2,11:0,17:0}
+	dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,17:-env_length/2}
+	dict_param_x_high = {0:+env_width/2, 2:+obj_width/2, 8:+obj_width/2, 9:+obj_width/2,11:0,17:0}
+	dict_param_y_high = {0:0, 2:+obj_length/2, 8:+obj_length/2, 9:+obj_length/2,11:0,17:+env_length/2}
 
 
-	lowest_left_x = []
-	lowest_left_y = []
-	highest_right_x = []
-	highest_right_y = []
-	for i in range(0,6):
-	    lowest_left_x.append(-1.0)
-	    lowest_left_y.append(-1.0)
-	    highest_right_x.append(-1.0)
-	    highest_right_y.append(-1.0)
-	    # print(data.markers[4].pose)
+	lowest_left_x = {}
+	lowest_left_y = {}
+	highest_right_x = {}
+	highest_right_y = {}
+
+	# for i in range(0,6):
+	#     lowest_left_x.append(-1.0)
+	#     lowest_left_y.append(-1.0)
+	#     highest_right_x.append(-1.0)
+	#     highest_right_y.append(-1.0)
+	#     # print(data.markers[4].pose)
 
 	signal = []
 	for i in range(0,6):
 	    signal.append(True)
-	#check KeyError
+
+
+	#check IndexError
+	tmp_cache = []
 	for i in range(0,6):
 	    try:
 	        data.markers[i].id
+	        tmp_cache.append(data.markers[i].id)
 	    except IndexError:
 	        signal[i]=False
 
@@ -175,19 +181,45 @@ def return_area_detected(data):
 	for i in range(0,6):
 		if(signal[i]):
 			print(dict_printer[data.markers[i].id])
-			lowest_left_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_low[data.markers[i].id]
-			lowest_left_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_low[data.markers[i].id]
-			highest_right_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_high[data.markers[i].id]
-			highest_right_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_high[data.markers[i].id]
-	   	else:
-			lowest_left_x[i] = "NO_DETECTION"
-			lowest_left_y[i] = "NO_DETECTION"
+			# lowest_left_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_low[data.markers[i].id]
+			# lowest_left_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_low[data.markers[i].id]
+			# highest_right_x[i] = data.markers[i].pose.pose.position.x+dict_param_x_high[data.markers[i].id]
+			# highest_right_y[i] = data.markers[i].pose.pose.position.y+dict_param_y_high[data.markers[i].id]
 
-			highest_right_x[i] = "NO_DETECTION"
-			highest_right_y[i] = "NO_DETECTION"
-	currentAreaCoor = ([lowest_left_x,lowest_left_y],[highest_right_x,highest_right_y])
+			lowest_left_x[data.markers[i].id] = data.markers[i].pose.pose.position.x+dict_param_x_low[data.markers[i].id]
+			lowest_left_y[data.markers[i].id] = data.markers[i].pose.pose.position.y+dict_param_y_low[data.markers[i].id]
+			highest_right_x[data.markers[i].id] = data.markers[i].pose.pose.position.x+dict_param_x_high[data.markers[i].id]
+			highest_right_y[data.markers[i].id] = data.markers[i].pose.pose.position.y+dict_param_y_high[data.markers[i].id]
+
+	  #  	else:
+			# lowest_left_x[i] = "NO_DETECTION"
+			# lowest_left_y[i] = "NO_DETECTION"
+
+			# highest_right_x[i] = "NO_DETECTION"
+			# highest_right_y[i] = "NO_DETECTION"
+
+	lowest_left_x_new = []
+	lowest_left_y_new = []
+	highest_right_x_new = []
+	highest_right_y_new = []
+
+	for i in [0,2,8,9,11,17]:
+		# dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
+		if(i in tmp_cache):
+			lowest_left_x_new.append(lowest_left_x[i])
+			lowest_left_y_new.append(lowest_left_y[i])
+			highest_right_x_new.append(highest_right_x[i])
+			highest_right_y_new.append(highest_right_y[i])
+		else:
+			lowest_left_x_new.append("NO_DETECTION")
+			lowest_left_y_new.append("NO_DETECTION")
+			highest_right_x_new.append("NO_DETECTION")
+			highest_right_y_new.append("NO_DETECTION")
+
+
+	currentAreaCoor = ([lowest_left_x_new,lowest_left_y_new],[highest_right_x_new,highest_right_y_new])
 	print(currentAreaCoor)
-
+	
 
 def main():
 
