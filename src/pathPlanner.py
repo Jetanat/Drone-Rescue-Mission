@@ -132,7 +132,7 @@ def return_area_detected(data):
     # print(type(data))
     #ID : -> 0 : wall_width, 1 : obstacle_one, 2 : obstacle_two, 3 : obstacle_three, 4 : landing, 5 : wall_length
     no_dict_okay = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",13:"wall_length"}
-
+    # data = {0:[0,11,2],1:[2,1,22],2:[8,2,15],3:[9,15,13],4:[11,19,11],5:[13,1,0]}
     global env_length, env_width
     global obj_width,obj_length
     global currentAreaCoor
@@ -141,33 +141,54 @@ def return_area_detected(data):
     lowest_left_y = []
     highest_right_x = []
     highest_right_y = []
-    for i in range(0,5):
+    for i in range(0,6):
         lowest_left_x.append(-1.0)
         lowest_left_y.append(-1.0)
         highest_right_x.append(-1.0)
         highest_right_y.append(-1.0)
         # print(data.markers[4].pose)
 
-    # print(data.markers[5])
-    if(dict[data.markers[0].id]=="wall_width"):
+    signal = []
+    for i in range(0,6):
+        signal.append(True)
+    #check KeyError
+    for i in range(0,6):
+        try:
+            data.markers[i].id
+        except IndexError:
+            signal[i]=False
+
+    if(signal[0]): #"wall_width"
         print "wall_width"
         lowest_left_x[0] = data.markers[0].pose.pose.position.x-env_width/2
         lowest_left_y[0] = data.markers[0].pose.pose.position.y
 
         highest_right_x[0] = data.markers[0].pose.pose.position.x+env_width/2
         highest_right_y[0] = data.markers[0].pose.pose.position.y
+    else:
+        lowest_left_x[0] = "NO_DETECTION"
+        lowest_left_y[0] = "NO_DETECTION"
+
+        highest_right_x[0] = "NO_DETECTION"
+        highest_right_y[0] = "NO_DETECTION"
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
 
-    if(dict[data.markers[1].id]=="obstacle_one"):
+    if(signal[1]): #"obstacle_one"
         print("obstacle_one")
         lowest_left_x[1]=data.markers[1].pose.pose.position.x-obj_width/2
         lowest_left_y[1]=data.markers[1].pose.pose.position.y-obj_width/2
 
         highest_right_x[1] = data.markers[1].pose.pose.position.x+obj_width/2
         highest_right_y[1] = data.markers[1].pose.pose.position.y+obj_width/2
+    else:
+        lowest_left_x[1] = "NO_DETECTION"
+        lowest_left_y[1] = "NO_DETECTION"
+
+        highest_right_x[1] = "NO_DETECTION"
+        highest_right_y[1] = "NO_DETECTION"
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
 
-    if(dict[data.markers[2].id]=="obstacle_two"):
+    if(signal[2]): #"obstacle_two"
         print("obstacle_two")
         lowest_left_x[2]=data.markers[2].pose.pose.position.x-obj_width/2
         lowest_left_y[2]=data.markers[2].pose.pose.position.y-obj_width/2
@@ -175,8 +196,14 @@ def return_area_detected(data):
         highest_right_x[2] = data.markers[2].pose.pose.position.x+obj_width/2
         highest_right_y[2] = data.markers[2].pose.pose.position.y+obj_width/2
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+    else:
+        lowest_left_x[2] = "NO_DETECTION"
+        lowest_left_y[2] = "NO_DETECTION"
 
-    if(dict[data.markers[3].id]=="obstacle_three"):
+        highest_right_x[2] = "NO_DETECTION"
+        highest_right_y[2] = "NO_DETECTION"
+
+    if(signal[3]): #"obstacle_three"
         print("obstacle_three")
         lowest_left_x[3]=data.markers[3].pose.pose.position.x-obj_width/2
         lowest_left_y[3]=data.markers[3].pose.pose.position.y-obj_width/2
@@ -184,8 +211,14 @@ def return_area_detected(data):
         highest_right_x[3] = data.markers[3].pose.pose.position.x+obj_width/2
         highest_right_y[3] = data.markers[3].pose.pose.position.y+obj_width/2
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+    else:
+        lowest_left_x[3] = "NO_DETECTION"
+        lowest_left_y[3] = "NO_DETECTION"
 
-    if(dict[data.markers[4].id]=="landing"):
+        highest_right_x[3] = "NO_DETECTION"
+        highest_right_y[3] = "NO_DETECTION"
+
+    if(signal[4]): #"landing"
         print("landing")
         lowest_left_x[4]=data.markers[4].pose.pose.position.x
         lowest_left_y[4]=data.markers[4].pose.pose.position.y
@@ -193,8 +226,14 @@ def return_area_detected(data):
         highest_right_x[4] = data.markers[4].pose.pose.position.x
         highest_right_y[4] = data.markers[4].pose.pose.position.y
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+    else:
+        lowest_left_x[4] = "NO_DETECTION"
+        lowest_left_y[4] = "NO_DETECTION"
 
-    if(dict[data.markers[5].id]=="wall_length"):
+        highest_right_x[4] = "NO_DETECTION"
+        highest_right_y[4] = "NO_DETECTION"
+
+    if(signal[5]): #"wall_length"
         print("wall_length")
         lowest_left_x[5]=data.markers[5].pose.pose.position.x
         lowest_left_y[5]=data.markers[5].pose.pose.position.y-env_length/2
@@ -202,49 +241,16 @@ def return_area_detected(data):
         highest_right_x[5] = data.markers[5].pose.pose.position.x
         highest_right_y[5] = data.markers[5].pose.pose.position.y+env_length/2
         # return [(lowest_left_x,lowest_left_y),(highest_right_x,highest_right_y)]
+    else:
+        lowest_left_x[5] = "NO_DETECTION"
+        lowest_left_y[5] = "NO_DETECTION"
+
+        highest_right_x[5] = "NO_DETECTION"
+        highest_right_y[5] = "NO_DETECTION"
 
     currentAreaCoor = ([lowest_left_x,lowest_left_y],[highest_right_x,highest_right_y])
+    # print(currentAreaCoor)
 
-def average_ar_tag(data):
-    global lowest_left_x_total, lowest_left_y_total
-    global highest_right_x_total, highest_right_y_total
-    global currentAreaCoor
-    global averageAreaCoor
-
-    return_area_detected(data)
-
-    current_coor = currentAreaCoor
-    lowest_left_x = current_coor[0][0]
-    lowest_left_y = current_coor[0][1]
-
-    highest_right_x = current_coor[1][0]
-    highest_right_y = current_coor[1][1]
-
-    for i in range(0,6):
-        if len(lowest_left_x_total[i]) > numbers_to_average:
-            lowest_left_x_total[i]=[]
-            lowest_left_y_total[i]=[]
-            highest_right_x_total[i]=[]
-            highest_right_y_total[i]=[]
-    sumLx=[]
-    sumLy=[]
-    sumHx=[]
-    sumHy=[]
-    for i in range(0,6):
-        sumLx.append(0)
-        sumLy.append(0)
-        sumHx.append(0)
-        sumHy.append(0)
-
-    for i in range(0,6):
-        if len(lowest_left_x_total[i])==numbers_to_average:
-            for k in range(0,numbers_to_average):
-                sumLx[i]+=lowest_left_x_total[i][k]/numbers_to_average
-                sumLy[i]+=lowest_left_y_total[i][k]/numbers_to_average
-                sumHx[i]+=highest_right_x_total[i][k]/numbers_to_average
-                sumHy[i]+=highest_right_y_total[i][k]/numbers_to_average
-
-    averageAreaCoor = ([sumLx,sumLy],[sumHx,sumHy])
 
 def main():
 
@@ -253,13 +259,13 @@ def main():
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
-    #rospy.init_node('listener', anonymous=True)
+    rospy.init_node('listener', anonymous=True)
 
     # rospy.Subscriber("/ar_pose_marker", AlvarMarkers, callback)
-    #rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
+    rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
 
     # spin() simply keeps python from exiting until this node is stopped
-    #rospy.spin()
+    rospy.spin()
 
     world_map = WorldMap()
     world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
