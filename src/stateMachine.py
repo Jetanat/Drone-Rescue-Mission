@@ -10,7 +10,7 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 10.0
+FLIGHT_TIME = 6.0
 #STATES = {0: "first_turn", 1: "second_turn", 2: "run_Astar", 3: "micro_plan", 4: "action", 5: "land" }
 STATE = 0
 READ_INTERVAL = 2.0
@@ -18,15 +18,21 @@ PI = 3.1415926535897
 angular_speed = 45*2*PI/360 	#45 degrees per second
 linear_speed = 0.5
 
+pose_x = 0
+pose_y = 0
+pose_z = 1
+pose_theta = 0
 
 
 def rotate(clockwise,angle):
-	global drone_pub
+	global drone_pub, pose_theta
 	vel_msg = Twist()
 	if clockwise:
-		vel_msg.angular.z = -abs(angular_speed) 
+		vel_msg.angular.z = -abs(angular_speed)
+		pose_theta = pose_theta - angle
 	else:
-		vel_msg.angular.z = abs(angular_speed) 
+		vel_msg.angular.z = abs(angular_speed)
+		pose_theta = pose_theta + angle 
 
 	t0 = time.time()
 	current_angle = 0
@@ -44,17 +50,21 @@ def rotate(clockwise,angle):
 
 def x_translate(direction,length):
 	######### 0.5 Length = 50 inches #####
-	global drone_pub
+	global drone_pub, pose_x
 	#forward = 1
 	vel_msg = Twist()
 	if direction:
 		vel_msg.linear.x = abs(linear_speed) 
+		pose_x = pose_x + length
 	else:
-		vel_msg.linear.x = -abs(linear_speed) 
+		vel_msg.linear.x = -abs(linear_speed)
+		pose_x = pose_x - length 
 
+	print(pose_x)
 	t0 = time.time()
 	current_linear = 0
-	relative_linear = length - length*0.6 
+	relative_linear = length - length*0.65 
+	print(relative_linear)
 
 	while(current_linear < relative_linear):
 		drone_pub.publish(vel_msg)
@@ -66,16 +76,19 @@ def x_translate(direction,length):
 	drone_pub.publish(vel_msg)
 	return
 
+
 def y_translate(direction,length):
-	global drone_pub
+	global drone_pub, pose_y
 	#forward = 1
 	vel_msg = Twist()
 	if direction:
 		vel_msg.linear.y = abs(linear_speed) 
+		pose_y = pose_y + length
 	else:
-		vel_msg.linear.y = -abs(linear_speed) 
+		vel_msg.linear.y = -abs(linear_speed)
+		pose_y = pose_y - length 
 
-	t0 = rospy.Time.now().to_sec()
+	t0 = time.time()
 	current_linear = 0
 	relative_linear = length - length*0.6 
 
@@ -89,22 +102,32 @@ def y_translate(direction,length):
 	drone_pub.publish(vel_msg)
 	return
 
-
+# all in meters and 
+def set_pose_destination(x,y,theta):
+	if x > 0:
+		x_translate(1,x)
+	if x < 0:
+		x_translate(0,x)
+	if y > 0:
+		y_translate(1,y)
+	if y < 0:
+		y_translate(0,y)
+	#set_theta = 
 
 def main():
 	#initialize ros nodes
-	global drone_pub, STATE
+	global drone_pub, STATE, pose_x, pose_y, pose_z, pose_theta
 	rospy.init_node("statemachine", anonymous=True)
 	drone_pub = rospy.Publisher("/bebop/cmd_vel", Twist, queue_size=1)
 	takeoff_pub = rospy.Publisher("/bebop/takeoff", Empty, queue_size=1)
 	landing_pub = rospy.Publisher("/bebop/land", Empty, queue_size=1)
-	#ar_tags = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, planner.average_ar_tag)
+	ar_tags = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, planner.return_area_detected)
 	world_map = planner.WorldMap()
 
 	time.sleep(1.)
     #takeoff and start run timer
-	takeoff_pub.publish(Empty())
-	time.sleep(2.)
+	#takeoff_pub.publish(Empty())
+	#time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
 		
 	last_call = time.time()
@@ -114,47 +137,66 @@ def main():
 	while not rospy.is_shutdown() and time.time() - start_time < FLIGHT_TIME:
 		if STATE == 0:
 			if time.time() - last_call > READ_INTERVAL:
-				print ("Rotate 0")
+				data = planner.currentAreaCoor #([lowtuple], [hightuple])
+				print(data)
+				print(data[0][0][0])
+				for index in range(0,6):
+					#if data[0][0][index] != -1.0:
+					if index == 4:
+						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+					else:
+						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+				world_map.print_obs_map()
+				print ("NOW Rotate 0")
 				#turn clockwise 45 deg to read ar tags
-				rotate(1,45)
+				#rotate(1,45)
+				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
 				STATE = 1
 
 		if STATE == 1:
 			if time.time() - last_call > READ_INTERVAL:
-				print ("Rotate 1")
+				data = planner.return_area_detected #([lowtuple], [hightuple])
+				print(data[0][0][0])
+				for index in range(0,6):
+					#if data[0][0][index] != -1.0:
+					if index == 4:
+						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+					else:
+						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+				world_map.print_obs_map()
+				print ("NOW Rotate 1")
 				#turn to counter-clockwise 45 deg to read ar tags
-				rotate(0,90)
+				#rotate(0,90)
+				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
 				STATE = 2
 
 		if STATE == 2:
 			if time.time() - last_call > READ_INTERVAL:
-				print ("Rotate 2")
+				print ("NOW Rotate 2")
 				#return to forward and load into map
-				rotate(1,45)
+				#rotate(1,45)
+				print(pose_theta)
+				ar_tags.unregister()
 				last_call = time.time()
 				print(last_call)
 				time.sleep(1.)
-				x_translate(1,0.5)
-				time.sleep(1.)
-				#x_translate(0,0.5)
-				time.sleep(10.)
-				# print ("Add to map")
-				# data = planner.averageAreaCoor #([lowtuple], [hightuple])
-				# for index in range(0,6):
-				# 	if data[0][0][index] != -1.0:
-				# 		if index == 4:
-				# 			world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
-				# 		else:
-				# 			world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+				print ("Add to map")
+				data = planner.return_area_detected #([lowtuple], [hightuple])
+				for index in range(0,6):
+					if data[0][0][index] != -1.0:
+						if index == 4:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+						else:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 
-				# world_map.print_obs_map()
-				# path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
-				# print path
-				# STATE = 3
+				world_map.print_obs_map()
+				path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
+				print path
+				STATE = 3
 
     	if STATE == 3:
     	 	temp = 0 
