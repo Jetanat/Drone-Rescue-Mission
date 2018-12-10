@@ -10,7 +10,7 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 6.0
+FLIGHT_TIME = 10.0
 #STATES = {0: "first_turn", 1: "second_turn", 2: "run_Astar", 3: "micro_plan", 4: "action", 5: "land" }
 STATE = 0
 READ_INTERVAL = 2.0
@@ -103,6 +103,36 @@ def y_translate(direction,length):
 	drone_pub.publish(vel_msg)
 	return
 
+# def mirco_plan(path):
+# 	global STATE, current_path
+#     i = current_path
+#     	#current x, y coords
+#     cur_x = path[i][0]
+#     cur_y = path[i][1]
+
+#     #next x,y coords
+#     if path[i+1][0] != -1 and path[i+1][1] != -1:
+#         next_x = path[i+1][0]
+#         next_y = path[i+1][1]
+    
+#     #next 2 of x, y
+#     if not path[i+2][0] and not path[i+2][1]:
+#         next2_x = path[i+2][0]
+#         next2_y = path[i+2][1]
+
+#     if next_y != next2_y:
+#         if next_y < next2_y:
+#             print("set_pose_dest((x, y), -90.0)")
+            
+#         elif next_y > next2_y:
+#             print("set_pose_dest((x, y), 90.0)")
+        
+#     elif next_y == next2_y:
+#     	print("set_pose_dest((x, y), 0.0)")
+
+#     STATE = 5
+#     i+=1
+
 # all in meters and 
 def set_pose_destination(x,y,theta):
 	if x > 0:
@@ -127,8 +157,8 @@ def main():
 
 	time.sleep(1.)
     #takeoff and start run timer
-	#takeoff_pub.publish(Empty())
-	#time.sleep(3.)
+	takeoff_pub.publish(Empty())
+	time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
 		
 	last_call = time.time()
@@ -147,10 +177,10 @@ def main():
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
 						else:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
-				world_map.print_obs_map()
+				#world_map.print_obs_map()
 				print ("NOW Rotate 0")
 				#turn clockwise 45 deg to read ar tags
-				#rotate(1,45)
+				rotate(1,45)
 				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -158,18 +188,17 @@ def main():
 
 		if STATE == 1:
 			if time.time() - last_call > READ_INTERVAL:
-				data = planner.return_area_detected #([lowtuple], [hightuple])
-				print(data[0][0][0])
+				data = planner.currentAreaCoor #([lowtuple], [hightuple])
 				for index in range(0,6):
-					#if data[0][0][index] != -1.0:
-					if index == 4:
-						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
-					else:
-						world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
-				world_map.print_obs_map()
+					if data[0][0][index] != "NO_DETECTION":
+						if index == 4:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
+						else:
+							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
+				#world_map.print_obs_map()
 				print ("NOW Rotate 1")
 				#turn to counter-clockwise 45 deg to read ar tags
-				#rotate(0,90)
+				rotate(0,90)
 				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -177,29 +206,32 @@ def main():
 
 		if STATE == 2:
 			if time.time() - last_call > READ_INTERVAL:
-				print ("NOW Rotate 2")
 				#return to forward and load into map
-				#rotate(1,45)
-				print(pose_theta)
-				ar_tags.unregister()
-				last_call = time.time()
-				print(last_call)
-				time.sleep(1.)
 				print ("Add to map")
-				data = planner.return_area_detected #([lowtuple], [hightuple])
+				data = planner.currentAreaCoor #([lowtuple], [hightuple])
 				for index in range(0,6):
-					if data[0][0][index] != -1.0:
+					if data[0][0][index] != "NO_DETECTION":
 						if index == 4:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
 						else:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 
 				world_map.print_obs_map()
+				print ("NOW Rotate 2")
+				rotate(1,45)
+				print(pose_theta)
+				last_call = time.time()
+				print(last_call)
+				time.sleep(1.)
+				landing_pub.publish(Empty())
+				print ("Shutdown")
 				path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
 				print path
+				time.sleep(10.)
 				STATE = 3
 
     	if STATE == 3:
+    		temp = 0
     	 	micro_plan(path) 
 
     	if STATE == 5:

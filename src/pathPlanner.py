@@ -7,8 +7,8 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 from ar_track_alvar_msgs.msg import AlvarMarker
 
 #size of the drone environment, full map
-env_width = 4.0 #meters
-env_length = 4.0 #meters
+env_width = 6.0 #meters
+env_length = 6.0 #meters
 
 #size of objection, each dot dected
 obj_width = 0.20 #meters
