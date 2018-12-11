@@ -86,7 +86,7 @@ def a_star(graph, start, goal):
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
 	path = []
-	path.append((-1,-1))
+	path.append((-10,-10))
 	while current != start:
 		path.append(current)
 		new_numbers = camefrom[current]
@@ -118,52 +118,7 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 
 	print("short path",newPath)
 
-	return path
-
-	# current = goal
-	# d = None 
-	# path = []
-	# path.append((-1,-1))
-	# while current != start:
-	# 	if not path:
-	# 		path.append(current)
-	# 	else:
-	# 		if d is None:
-	# 			if path[-1][0]==current[0]:
-	# 				d = 0
-	# 			else:
-	# 				d = 1
-	# 		if path[-1][d]!=current[d]:
-	# 			path.append(current)
-	# 			d = None
-	# 	#path.append(current)
-	# 	new_numbers = camefrom[current]
-	# 	current = new_numbers
-	# path.append(start)
-	# path.reverse()
-	# return path
-
-# 	k = [[1,1],[1,2],[1,3],[2,3],[2,2]]
-
-# d=None
-# newPath=[]
-# for pose in k:
-#     if not newPath:
-#         newPath.append(pose)
-#     else:
-#         if d is None:
-#             if newPath[-1][0]==pose[0]:
-#                 d=0
-#             else:
-#                 d=1
-#         if newPath[-1][d]!=pose[d]:
-#             newPath.append(pose)
-#             d=None
-
-# if newPath[-1] != k[-1]:
-#    newPath.append(k[-1])
-
-#print(newPath)
+	return newPath
 
 def main():
 	p.world_map = WorldMap()

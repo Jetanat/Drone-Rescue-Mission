@@ -2,6 +2,7 @@
 
 import heapq
 import rospy
+import math
 from std_msgs.msg import String
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from ar_track_alvar_msgs.msg import AlvarMarker
@@ -73,27 +74,25 @@ class WorldMap:
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
-        x = (i-20)*MAP_RESOLUTION
-        y = (j-20)*MAP_RESOLUTION
+        x = round((i-20)*MAP_RESOLUTION,2)
+        y = round((j-20)*MAP_RESOLUTION,2)
         return x,y
 
-    def _is_open(self, i, j):
+    def _is_open(self, i, j): 
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
     def neighbors(self, cell):
         i, j = self._world_to_map(cell[0], cell[1])
-        #print ("this is called i,j",i,j)
-        #print("now to is open")
         neigh = []
         if self._is_open(i-1,j):
             neigh.append([self._map_to_world(i-1,j)])
-        if self._is_open(i+1,j):
+        if self._is_open(i+1,j) and i+1<=2*MAP_MAX_X/MAP_RESOLUTION-1:
             neigh.append([self._map_to_world(i+1,j)])
         if self._is_open(i,j-1):
             neigh.append([self._map_to_world(i,j-1)])
-        if self._is_open(i,j+1):
+        if self._is_open(i,j+1) and j+1<=2*MAP_MAX_Y/MAP_RESOLUTION-1:
             neigh.append([self._map_to_world(i,j+1)])
-        #print("returned neigh",neigh)
+        print(neigh)
         return neigh
 
     def dist_to_goal(self, cell):
@@ -155,12 +154,6 @@ def return_area_detected(data):
 	highest_right_x = {}
 	highest_right_y = {}
 
-	# for i in range(0,6):
-	#     lowest_left_x.append(-1.0)
-	#     lowest_left_y.append(-1.0)
-	#     highest_right_x.append(-1.0)
-	#     highest_right_y.append(-1.0)
-	#     # print(data.markers[4].pose)
 
 	signal = []
 	for i in range(0,6):

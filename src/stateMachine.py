@@ -104,36 +104,6 @@ def y_translate(direction,length):
 	drone_pub.publish(vel_msg)
 	return
 
-# def mirco_plan(path):
-# 	global STATE, current_path
-#     i = current_path
-#     	#current x, y coords
-#     cur_x = path[i][0]
-#     cur_y = path[i][1]
-
-#     #next x,y coords
-#     if path[i+1][0] != -1 and path[i+1][1] != -1:
-#         next_x = path[i+1][0]
-#         next_y = path[i+1][1]
-    
-#     #next 2 of x, y
-#     if not path[i+2][0] and not path[i+2][1]:
-#         next2_x = path[i+2][0]
-#         next2_y = path[i+2][1]
-
-#     if next_y != next2_y:
-#         if next_y < next2_y:
-#             print("set_pose_dest((x, y), -90.0)")
-            
-#         elif next_y > next2_y:
-#             print("set_pose_dest((x, y), 90.0)")
-        
-#     elif next_y == next2_y:
-#     	print("set_pose_dest((x, y), 0.0)")
-
-#     STATE = 5
-#     i+=1
-
 
 def set_pose_destination(x,y,theta):
 	# break move commands into respective functions
@@ -162,7 +132,6 @@ def set_pose_destination(x,y,theta):
 		rotate(0,angle)
 		time.sleep(.2)
 
-	time.sleep(.2)
 	# read mocap data and see if the drone moved far enough
 	# in each direction and if not, then rerun this move function
 	error_x = mocap_x - x
@@ -177,6 +146,68 @@ def set_pose_destination(x,y,theta):
 
 	if abs(error_theta) > MOCAP_ERROR:
 		set_pose_destination(0, 0, error_theta) 
+
+	return
+
+
+def mirco_plan(path):
+	global current_path, STATE
+	#current ith path
+	i = current_path
+
+	#current x, y coords
+	#x,y are not -1
+	if len(path)-1-i >= 0:
+		#if path[i][0] != -1 and path[i][1] != -1:
+		cur_x = path[i][0]
+		cur_y = path[i][1]
+
+	#next x,y coords
+	#if we have one extra path ahead
+	#and x,y are not -1
+	if len(path)-1-i >= 1:
+		#if path[i+1][0] != -1 and path[i+1][1] != -1:
+		next_x = path[i+1][0]
+		next_y = path[i+1][1]
+
+	#next 2 of x, y coords
+	#if we have two extra path ahead
+	#and x,y are not -1
+	if len(path)-1-i >= 2:
+		#if path[i+2][0] != -1 and path[i+2][1] != -1:
+		next2_x = path[i+2][0]
+		next2_y = path[i+2][1]
+
+
+	# checking x coord
+	if next_x == -10 and next_y == -10:
+		print("Arrive destination")
+		STATE = 4
+
+	elif next_x != next2_x:
+		if next_x < next2_x:
+			print("set_pose_dest((x, y), 90.0)")
+
+		elif next_x > next2_x:
+			print("set_pose_dest((x, y), -90.0)")
+
+	elif next_x == next2_x:
+		print("set_pose_dest((x, y), 0.0)")
+
+	# checking y coord
+	elif next_y != next2_y:
+		if next_y < next2_y:
+			print("set_pose_dest((x, y), 90.0)")
+
+		elif next_y > next2_y:
+			print("set_pose_dest((x, y), -90.0)")
+
+	elif next_y == next2_y:
+		print("set_pose_dest((x, y), 0.0)")
+
+
+	current_path = current_path + 1 
+	return
 
 
 def main():
@@ -194,7 +225,8 @@ def main():
 	#takeoff_pub.publish(Empty())
 	#time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
-		
+	
+	path = []
 	last_call = time.time()
 	start_time = time.time()
 	print(last_call)
@@ -264,17 +296,17 @@ def main():
 				i,j = world_map._world_to_map(data[0][0][4],data[0][1][4])
 				#print(a_star_out)
 				path = astar.path(a_star_out, (0,0), world_map._map_to_world(i,j))
-				#print (path)
-				print("DONE!")
-				time.sleep(10.)
+				print (path)
+				print("Done with A_Star")
+				time.sleep(1.)
 				STATE = 3
-
-    	if STATE == 3:
-    		temp = 0
-    	 	micro_plan(path) 
-
-    	if STATE == 5:
-    		temp = 0
+		if STATE == 3:
+			print("STATE 3 IS HAPPENING")
+			mirco_plan(path)
+		if STATE == 4:
+			print("DONE!")
+    		#landing_pub.publish(Empty())
+    		time.sleep(3.)
 
 	#landing_pub.publish(Empty())
 	print ("Shutdown")
