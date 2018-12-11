@@ -35,14 +35,22 @@ class Grid:
 		results = filter(self.passable, results)
 		return results
 
-class GridWeights(Grid):
-	def __init__(self, width, height):
-		super().__init__(width, height)
-		self.weights = {}
+#class GridWeights(Grid):
+#	def __init__(self, width, height):
+#		super().__init__(width, height)
+#		self.weights = {}
+#
+#	def cost(self, fromnode, tonode):
+#		return self.weights.get(tonode, 1)
 
-	def cost(self, fromnode, tonode):
-		return self.weights.get(tonode, 1)
-
+def cost(fromnode, tonode):
+	from_y = fromnode[1]
+	from_x = fromnode[0]
+	to_ylist = [i[1] for i in tonode]
+	to_xlist = [i[0] for i in tonode]
+	to_y = to_ylist[0]
+	to_x = to_xlist[0]
+	return 10 if to_y - from_y and to_x - from_x else 5
 
 def dist_to_goal(a, b): #Simple distance heruristic
 	(x1, y1) = a
