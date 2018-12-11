@@ -2,6 +2,8 @@
 
 import rospy
 from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose
 from std_msgs.msg import Empty
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from ar_track_alvar_msgs.msg import AlvarMarker
@@ -10,13 +12,18 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 10.0
-#STATES = {0: "first_turn", 1: "second_turn", 2: "run_Astar", 3: "micro_plan", 4: "action", 5: "land" }
-STATE = 0
-READ_INTERVAL = 2.0
+FLIGHT_TIME = 15.0
+STATE = 2
+READ_INTERVAL = 3.0
 PI = 3.1415926535897
 angular_speed = 45*2*PI/360 	#45 degrees per second
 linear_speed = 0.5
+MOCAP_ERROR = 0.1
+
+mocap_x = 0
+mocap_y = 0
+mocap_z = 0
+mocap_theta = 0
 
 pose_x = 0
 pose_y = 0
@@ -27,14 +34,12 @@ current_path = 0
 
 
 def rotate(clockwise,angle):
-	global drone_pub, pose_theta
+	global drone_pub
 	vel_msg = Twist()
 	if clockwise:
 		vel_msg.angular.z = -abs(angular_speed)
-		pose_theta = pose_theta - angle
 	else:
 		vel_msg.angular.z = abs(angular_speed)
-		pose_theta = pose_theta + angle 
 
 	t0 = time.time()
 	current_angle = 0
@@ -51,15 +56,13 @@ def rotate(clockwise,angle):
 	return
 
 def x_translate(direction,length):
-	global drone_pub, pose_x
+	global drone_pub
 	#forward = 1
 	vel_msg = Twist()
 	if direction:
 		vel_msg.linear.x = abs(linear_speed) 
-		pose_x = pose_x + length
 	else:
-		vel_msg.linear.x = -abs(linear_speed)
-		pose_x = pose_x - length 
+		vel_msg.linear.x = -abs(linear_speed) 
 
 	print(pose_x)
 	t0 = time.time()
@@ -79,15 +82,13 @@ def x_translate(direction,length):
 
 
 def y_translate(direction,length):
-	global drone_pub, pose_y
+	global drone_pub
 	#forward = 1
 	vel_msg = Twist()
 	if direction:
 		vel_msg.linear.y = abs(linear_speed) 
-		pose_y = pose_y + length
 	else:
 		vel_msg.linear.y = -abs(linear_speed)
-		pose_y = pose_y - length 
 
 	t0 = time.time()
 	current_linear = 0
@@ -137,17 +138,45 @@ def y_translate(direction,length):
 def set_pose_destination(x,y,theta):
 	if x > 0:
 		x_translate(1,x)
+		time.sleep(.2)
+
 	if x < 0:
 		x_translate(0,x)
+		time.sleep(.2)
+
 	if y > 0:
 		y_translate(1,y)
+		time.sleep(.2)
+
 	if y < 0:
 		y_translate(0,y)
-	#set_theta = 
+		time.sleep(.2)
+
+	if theta < 0:
+		rotate(1,angle)
+		time.sleep(.2)
+
+	if theta > 0:
+		rotate(0,angle)
+		time.sleep(.2)
+
+	error_x = mocap_x - pose_x
+	error_y = mocap_y - pose_y
+	error_theta = mocap_theta - pose_theta
+
+	if abs(error_x) > MOCAP_ERROR: 
+		set_pose_destination(error_x, 0, 0)
+
+	if abs(error_y) > MOCAP_ERROR: 
+		set_pose_destination(0, error_y, 0)
+
+	if abs(error_theta) > MOCAP_ERROR:
+		set_pose_destination(0, 0, error_theta) 
+
 
 def main():
 	#initialize ros nodes
-	global drone_pub, STATE, pose_x, pose_y, pose_z, pose_theta, current_path
+	global drone_pub, STATE, current_path
 	rospy.init_node("statemachine", anonymous=True)
 	drone_pub = rospy.Publisher("/bebop/cmd_vel", Twist, queue_size=1)
 	takeoff_pub = rospy.Publisher("/bebop/takeoff", Empty, queue_size=1)
@@ -157,8 +186,8 @@ def main():
 
 	time.sleep(1.)
     #takeoff and start run timer
-	takeoff_pub.publish(Empty())
-	time.sleep(3.)
+	#takeoff_pub.publish(Empty())
+	#time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
 		
 	last_call = time.time()
@@ -180,7 +209,7 @@ def main():
 				#world_map.print_obs_map()
 				print ("NOW Rotate 0")
 				#turn clockwise 45 deg to read ar tags
-				rotate(1,45)
+				#rotate(1,45)
 				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -198,7 +227,7 @@ def main():
 				#world_map.print_obs_map()
 				print ("NOW Rotate 1")
 				#turn to counter-clockwise 45 deg to read ar tags
-				rotate(0,90)
+				#rotate(0,90)
 				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -217,16 +246,18 @@ def main():
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 
 				world_map.print_obs_map()
+				ar_tags.unregister()
 				print ("NOW Rotate 2")
-				rotate(1,45)
+				#rotate(1,45)
 				print(pose_theta)
 				last_call = time.time()
 				print(last_call)
 				time.sleep(1.)
-				landing_pub.publish(Empty())
+				#landing_pub.publish(Empty())
 				print ("Shutdown")
-				path = astar.path(astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4])), (0,0), (data[0][0][4],data[0][1][4]))
-				print path
+				a_star_out = astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4]))
+				#path = astar.path(a_star_out, (0,0), (data[0][0][4],data[0][1][4]))
+				#print path
 				time.sleep(10.)
 				STATE = 3
 
@@ -237,7 +268,7 @@ def main():
     	if STATE == 5:
     		temp = 0
 
-	landing_pub.publish(Empty())
+	#landing_pub.publish(Empty())
 	print ("Shutdown")
 
 if __name__ == '__main__':

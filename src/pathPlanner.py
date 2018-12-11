@@ -78,10 +78,14 @@ class WorldMap:
         return x,y
 
     def _is_open(self, i, j):
+        print (i,j)
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
     def neighbors(self, cell):
+        print(cell)
         i, j = self._world_to_map(cell[0], cell[1])
+        print (i,j)
+        print("now to is open")
         neigh = []
         if self._is_open(i-1,j):
             neigh.append([self._map_to_world(i-1,j)])
@@ -91,6 +95,7 @@ class WorldMap:
             neigh.append([self._map_to_world(i,j-1)])
         if self._is_open(i,j+1):
             neigh.append([self._map_to_world(i,j+1)])
+        print(neigh)
         return neigh
 
     def dist_to_goal(self, cell):
@@ -140,16 +145,12 @@ def return_area_detected(data):
 	global obj_width
 	global obj_length
 	global currentAreaCoor
-    # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
-    # print(data)
-    # print(type(data))
 
 	dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
 	dict_param_x_low = {0:-env_width/2, 2:-obj_width/2, 8:-obj_width/2, 9:-obj_width/2,11:0,17:0}
 	dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,17:-env_length/2}
 	dict_param_x_high = {0:+env_width/2, 2:+obj_width/2, 8:+obj_width/2, 9:+obj_width/2,11:0,17:0}
 	dict_param_y_high = {0:0, 2:+obj_length/2, 8:+obj_length/2, 9:+obj_length/2,11:0,17:+env_length/2}
-
 
 	lowest_left_x = {}
 	lowest_left_y = {}
@@ -176,7 +177,6 @@ def return_area_detected(data):
 	        tmp_cache.append(data.markers[i].id)
 	    except IndexError:
 	        signal[i]=False
-
 
 	for i in range(0,6):
 		if(signal[i]):
@@ -223,18 +223,6 @@ def return_area_detected(data):
 
 def main():
 
-    # In ROS, nodes are uniquely named. If two nodes with the same
-    # node are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
-    rospy.init_node('listener', anonymous=True)
-
-    # rospy.Subscriber("/ar_pose_marker", AlvarMarkers, callback)
-    rospy.Subscriber("/ar_pose_marker", AlvarMarkers, return_area_detected)
-
-    # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
 
     world_map = WorldMap()
     world_map.set_feature((-.1,-.1),(0,0), OBSTACLE)

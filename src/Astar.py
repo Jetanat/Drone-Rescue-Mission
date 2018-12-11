@@ -9,6 +9,7 @@ class PriorityQueue:
 		return len(self.elements) == 0
 
 	def put(self, item, priority):
+		print(heapq.nlargest(len(self.elements),(priority, item)))
 		heapq.heappush(self.elements, (priority, item))
 
 	def get(self):
@@ -74,11 +75,11 @@ def a_star(graph, start, goal):
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
 			newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
-			if nextthing not in costsofar or newcost < costsofar[nextthing]: #Update
-				costsofar[nextthing] = newcost
-				priority = newcost + dist_to_goal(goal, nextthing)
-				frontier.put(nextthing, priority)
-				camefrom[nextthing] = current
+			if nextthing[0] not in costsofar or newcost < costsofar[nextthing]: #Update
+				costsofar[nextthing[0]] = newcost
+				priority = newcost + dist_to_goal(goal, nextthing[0])
+				frontier.put(nextthing[0], priority)
+				camefrom[nextthing[0]] = current
 
 	return camefrom, costsofar
 
