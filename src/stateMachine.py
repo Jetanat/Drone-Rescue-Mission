@@ -134,8 +134,10 @@ def y_translate(direction,length):
 #     STATE = 5
 #     i+=1
 
-# all in meters and 
+
 def set_pose_destination(x,y,theta):
+	# break move commands into respective functions
+	# moves should be in meters 
 	if x > 0:
 		x_translate(1,x)
 		time.sleep(.2)
@@ -160,9 +162,12 @@ def set_pose_destination(x,y,theta):
 		rotate(0,angle)
 		time.sleep(.2)
 
-	error_x = mocap_x - pose_x
-	error_y = mocap_y - pose_y
-	error_theta = mocap_theta - pose_theta
+	time.sleep(.2)
+	# read mocap data and see if the drone moved far enough
+	# in each direction and if not, then rerun this move function
+	error_x = mocap_x - x
+	error_y = mocap_y - y
+	error_theta = mocap_theta - theta
 
 	if abs(error_x) > MOCAP_ERROR: 
 		set_pose_destination(error_x, 0, 0)
@@ -255,9 +260,12 @@ def main():
 				time.sleep(1.)
 				#landing_pub.publish(Empty())
 				print ("Shutdown")
-				a_star_out = astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4]))
-				#path = astar.path(a_star_out, (0,0), (data[0][0][4],data[0][1][4]))
-				#print path
+				a_star_out, cost_so_far = astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4]))
+				i,j = world_map._world_to_map(data[0][0][4],data[0][1][4])
+				#print(a_star_out)
+				path = astar.path(a_star_out, (0,0), world_map._map_to_world(i,j))
+				#print (path)
+				print("DONE!")
 				time.sleep(10.)
 				STATE = 3
 

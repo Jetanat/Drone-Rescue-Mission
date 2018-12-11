@@ -73,19 +73,17 @@ class WorldMap:
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
-        x = i*MAP_RESOLUTION
-        y = j*MAP_RESOLUTION
+        x = (i-20)*MAP_RESOLUTION
+        y = (j-20)*MAP_RESOLUTION
         return x,y
 
     def _is_open(self, i, j):
-        print (i,j)
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
     def neighbors(self, cell):
-        print(cell)
         i, j = self._world_to_map(cell[0], cell[1])
-        print (i,j)
-        print("now to is open")
+        #print ("this is called i,j",i,j)
+        #print("now to is open")
         neigh = []
         if self._is_open(i-1,j):
             neigh.append([self._map_to_world(i-1,j)])
@@ -95,7 +93,7 @@ class WorldMap:
             neigh.append([self._map_to_world(i,j-1)])
         if self._is_open(i,j+1):
             neigh.append([self._map_to_world(i,j+1)])
-        print(neigh)
+        #print("returned neigh",neigh)
         return neigh
 
     def dist_to_goal(self, cell):

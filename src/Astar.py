@@ -9,7 +9,7 @@ class PriorityQueue:
 		return len(self.elements) == 0
 
 	def put(self, item, priority):
-		print(heapq.nlargest(len(self.elements),(priority, item)))
+		#print("This is Heap", heapq.nlargest(len(self.elements),(priority, item)))
 		heapq.heappush(self.elements, (priority, item))
 
 	def get(self):
@@ -75,7 +75,7 @@ def a_star(graph, start, goal):
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
 			newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
-			if nextthing[0] not in costsofar or newcost < costsofar[nextthing]: #Update
+			if nextthing[0] not in costsofar or newcost < costsofar[nextthing[0]]: #Update
 				costsofar[nextthing[0]] = newcost
 				priority = newcost + dist_to_goal(goal, nextthing[0])
 				frontier.put(nextthing[0], priority)
@@ -84,14 +84,86 @@ def a_star(graph, start, goal):
 	return camefrom, costsofar
 
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
-	current = goal 
+	current = goal
 	path = []
+	path.append((-1,-1))
 	while current != start:
 		path.append(current)
-		currnet = came_from[current]
+		new_numbers = camefrom[current]
+		current = new_numbers
 	path.append(start)
 	path.reverse()
+	print("long path",path)
+
+	prev_pose = (0,0)
+	d=None
+	newPath=[]
+	for pose in path:
+	    if not newPath:
+	        newPath.append(pose)
+	    else:
+	        if d is None:
+	            if newPath[-1][0]==pose[0]:
+	                d=0
+	            else:
+	                d=1
+	        if newPath[-1][d]!=pose[d]:
+	        	newPath.append(prev_pose)
+	        	newPath.append(pose)
+	        	d=None
+	    prev_pose = pose
+
+	if newPath[-1] != path[-1]:
+	   newPath.append(path[-1])
+
+	print("short path",newPath)
+
 	return path
+
+	# current = goal
+	# d = None 
+	# path = []
+	# path.append((-1,-1))
+	# while current != start:
+	# 	if not path:
+	# 		path.append(current)
+	# 	else:
+	# 		if d is None:
+	# 			if path[-1][0]==current[0]:
+	# 				d = 0
+	# 			else:
+	# 				d = 1
+	# 		if path[-1][d]!=current[d]:
+	# 			path.append(current)
+	# 			d = None
+	# 	#path.append(current)
+	# 	new_numbers = camefrom[current]
+	# 	current = new_numbers
+	# path.append(start)
+	# path.reverse()
+	# return path
+
+# 	k = [[1,1],[1,2],[1,3],[2,3],[2,2]]
+
+# d=None
+# newPath=[]
+# for pose in k:
+#     if not newPath:
+#         newPath.append(pose)
+#     else:
+#         if d is None:
+#             if newPath[-1][0]==pose[0]:
+#                 d=0
+#             else:
+#                 d=1
+#         if newPath[-1][d]!=pose[d]:
+#             newPath.append(pose)
+#             d=None
+
+# if newPath[-1] != k[-1]:
+#    newPath.append(k[-1])
+
+#print(newPath)
 
 def main():
 	p.world_map = WorldMap()
