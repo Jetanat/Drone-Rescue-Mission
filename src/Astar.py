@@ -72,7 +72,7 @@ def a_star(graph, start, goal):
 			break
 
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
-			newcost = costsofar[current] + graph.cost(current, nextthing) #Looks at costs of moving to other cells
+			newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
 			if nextthing not in costsofar or newcost < costsofar[nextthing]: #Update
 				costsofar[nextthing] = newcost
