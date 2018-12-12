@@ -93,7 +93,7 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 		current = new_numbers
 	path.append(start)
 	path.reverse()
-	print("long path",path)
+	#print("long path",path)
 
 	prev_pose = (0,0)
 	d=None
@@ -116,7 +116,7 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	if newPath[-1] != path[-1]:
 	   newPath.append(path[-1])
 
-	print("short path",newPath)
+	#print("short path",newPath)
 
 	return newPath
 
