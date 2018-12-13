@@ -2,13 +2,14 @@
 
 import heapq
 import rospy
+import math
 from std_msgs.msg import String
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from ar_track_alvar_msgs.msg import AlvarMarker
 
 #size of the drone environment, full map
-env_width = 6.0 #meters
-env_length = 6.0 #meters
+env_width = 7.0 #meters
+env_length = 7.0 #meters
 
 #size of objection, each dot dected
 obj_width = 0.20 #meters
@@ -42,7 +43,7 @@ MAP_MIN_X=-2
 MAP_MIN_Y=-2
 MAP_RESOLUTION=0.1 #grid square size
 
-ROBOT_RADIUS=0.2
+ROBOT_RADIUS=0.3
 
 OPEN=0
 OBSTACLE=1
@@ -73,27 +74,29 @@ class WorldMap:
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
-        x = (i-20)*MAP_RESOLUTION
-        y = (j-20)*MAP_RESOLUTION
+        x = round((i-20)*MAP_RESOLUTION,2)
+        y = round((j-20)*MAP_RESOLUTION,2)
         return x,y
 
     def _is_open(self, i, j):
+        if i<0 or j<0:
+            return False
+        if i>2*MAP_MAX_X/MAP_RESOLUTION or j>2*MAP_MAX_Y/MAP_RESOLUTION:
+            return False
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
     def neighbors(self, cell):
         i, j = self._world_to_map(cell[0], cell[1])
-        #print ("this is called i,j",i,j)
-        #print("now to is open")
         neigh = []
-        if self._is_open(i-1,j):
+        if self._is_open(i-1,j) and i>0:
             neigh.append([self._map_to_world(i-1,j)])
-        if self._is_open(i+1,j):
+        if self._is_open(i+1,j) and i+1<=2*MAP_MAX_X/MAP_RESOLUTION-1:
             neigh.append([self._map_to_world(i+1,j)])
-        if self._is_open(i,j-1):
+        if self._is_open(i,j-1) and j>0:
             neigh.append([self._map_to_world(i,j-1)])
-        if self._is_open(i,j+1):
+        if self._is_open(i,j+1) and j+1<=2*MAP_MAX_Y/MAP_RESOLUTION-1:
             neigh.append([self._map_to_world(i,j+1)])
-        #print("returned neigh",neigh)
+        #print(neigh)
         return neigh
 
     def dist_to_goal(self, cell):
@@ -109,6 +112,7 @@ class WorldMap:
 #            max_i+=1
 #        if(max_j==max_j):
 #            max_j+=1
+        #print("map: %s %s" %(low, high))
         for i in range(min_i, max_i+1):
             for j in range(min_j, max_j+1):
                 self._map[i][j] = status
@@ -155,12 +159,6 @@ def return_area_detected(data):
 	highest_right_x = {}
 	highest_right_y = {}
 
-	# for i in range(0,6):
-	#     lowest_left_x.append(-1.0)
-	#     lowest_left_y.append(-1.0)
-	#     highest_right_x.append(-1.0)
-	#     highest_right_y.append(-1.0)
-	#     # print(data.markers[4].pose)
 
 	signal = []
 	for i in range(0,6):

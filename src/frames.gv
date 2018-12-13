@@ -1,0 +1,11 @@
+digraph G {
+"base_link" -> "camera_base_link"[label="Broadcaster: /bebop/robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1544677530.868 sec old)\nBuffer length: 0.000 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /bebop/bebop_driver\nAverage rate: 5.257 Hz\nMost recent transform: 1544677530.714 ( 0.154 sec old)\nBuffer length: 4.565 sec\n"];
+"camera_tilt_link" -> "camera_optical"[label="Broadcaster: /bebop/robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1544677530.868 sec old)\nBuffer length: 0.000 sec\n"];
+"camera_pan_link" -> "camera_tilt_link"[label="Broadcaster: /bebop/robot_state_publisher\nAverage rate: 5.204 Hz\nMost recent transform: 1544677530.737 ( 0.131 sec old)\nBuffer length: 4.804 sec\n"];
+"camera_base_link" -> "camera_pan_link"[label="Broadcaster: /bebop/robot_state_publisher\nAverage rate: 5.204 Hz\nMost recent transform: 1544677530.737 ( 0.131 sec old)\nBuffer length: 4.804 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1544677530.868"[ shape=plaintext ] ;
+ }->"odom";
+}
