@@ -13,8 +13,8 @@ import pathPlanner as planner
 import Astar as astar
 
 FLIGHT_TIME = 25.0
-STATE = 1
-READ_INTERVAL = 3.0
+STATE = 0
+READ_INTERVAL = 2.0
 PI = 3.1415926535897
 angular_speed = 45*2*PI/360 	#45 degrees per second
 linear_speed = 0.5
@@ -59,7 +59,6 @@ def x_translate(direction,length):
 	else:
 		vel_msg.linear.x = -abs(linear_speed) 
 
-	print(pose_x)
 	t0 = time.time()
 	current_linear = 0
 	relative_linear = length - length*0.65 
@@ -104,40 +103,42 @@ def set_pose_destination(pose_x,pose_y):
 	global mocap_x, mocap_y, mocap_theta
 	x = pose_x - mocap_x
 	y = pose_y - mocap_y
+	print(x,y)
 	# break move commands into respective functions
 	# moves should be in meters 
 	if x > 0:
 		print("x forward")
-		#x_translate(1,x)
+		x_translate(1,x)
 		time.sleep(.1)
 
 	if x < 0:
 		print("x backward")
-		#x_translate(0,x)
+		x_translate(0,x)
 		time.sleep(.1)
 
 	if y > 0:
 		print("y forward")
-		#y_translate(1,y)
+		y_translate(1,y)
 		time.sleep(.1)
 
 	if y < 0:
 		print("y backward")
-		#y_translate(0,y)
+		y_translate(0,y)
 		time.sleep(.1)
 
-	# read mocap data and see if the drone moved far enough
-	# in each direction and if not, then rerun this move function
+	#read mocap data and see if the drone moved far enough
+	#in each direction and if not, then rerun this move function
 	# error_x = x - mocap_x
 	# error_y = y - mocap_y
 
+	# print("errors", x,y)
 	# if abs(error_x) > MOCAP_ERROR: 
 	# 	set_pose_destination(error_x, 0)
 
 	# if abs(error_y) > MOCAP_ERROR: 
 	# 	set_pose_destination(0, error_y)
-	mocap_x = mocap_x + x
-	mocap_y = mocap_y + y
+	# mocap_x = mocap_x + x
+	# mocap_y = mocap_y + y
 	return
 
 
@@ -174,10 +175,9 @@ def mirco_plan(path):
 
 def update_pose(data):
 	global mocap_x, mocap_y, mocap_theta #,mocap_z
-	mocap_x = data.pose.position.x
-	mocap_y = data.pose.position.y
-	#mocap_z = data.pose.position.z
-	mocap_theta = data.pose.position.theta
+	mocap_x = -data.pose.position.y + 1
+	mocap_y = data.pose.position.x
+	return
 
 def main():
 	#initialize ros nodes
@@ -187,36 +187,38 @@ def main():
 	takeoff_pub = rospy.Publisher("/bebop/takeoff", Empty, queue_size=1)
 	landing_pub = rospy.Publisher("/bebop/land", Empty, queue_size=1)
 	ar_tags = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, planner.return_area_detected)
-	#movo = rospy.Subscriber("/vrpn_client_node/movo/pose", PoseStamped, update_pose)
+	movo = rospy.Subscriber("/vrpn_client_node/RigidBody01/pose", PoseStamped, update_pose)
 	world_map = planner.WorldMap()
 
 	time.sleep(1.)
     #takeoff and start run timer
-	#takeoff_pub.publish(Empty())
-	#time.sleep(3.)
+	takeoff_pub.publish(Empty())
+	time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
 	
 	path = []
 	last_call = time.time()
 	start_time = time.time()
 	print(last_call)
+	landing = []
 	#while loop for states and flight time
 	while not rospy.is_shutdown() and time.time() - start_time < FLIGHT_TIME:
 		if STATE == 0:
 			if time.time() - last_call > READ_INTERVAL:
 				data = planner.currentAreaCoor #([lowtuple], [hightuple])
 				print(data)
-				print(data[0][0][0])
 				for index in range(0,6):
 					if data[0][0][index] != "NO_DETECTION":
 						if index == 4:
+							landing = (data[0][0][index],data[0][1][index])
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
 						else:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 				#world_map.print_obs_map()
 				print ("NOW Rotate 0")
 				#turn clockwise 50 deg to read ar tags
-				#rotate(1,50)
+				time.sleep(.5)
+				rotate(1,65)
 				#print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -225,16 +227,19 @@ def main():
 		if STATE == 1:
 			if time.time() - last_call > READ_INTERVAL:
 				data = planner.currentAreaCoor #([lowtuple], [hightuple])
+				print(data)
 				for index in range(0,6):
 					if data[0][0][index] != "NO_DETECTION":
 						if index == 4:
+							landing = (data[0][0][index],data[0][1][index])
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
 						else:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 				#world_map.print_obs_map()
 				print ("NOW Rotate 1")
 				#turn to counter-clockwise 50 deg to read ar tags
-				#rotate(0,100)
+				time.sleep(.5)
+				rotate(0,90)
 				#print(pose_theta)
 				last_call = time.time()
 				print(last_call)
@@ -245,32 +250,42 @@ def main():
 				#return to forward and load into map
 				print ("Add to map")
 				data = planner.currentAreaCoor #([lowtuple], [hightuple])
+				print(data)
 				for index in range(0,6):
 					if data[0][0][index] != "NO_DETECTION":
 						if index == 4:
+							landing = (data[0][0][index],data[0][1][index])
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 3)
 						else:
 							world_map.set_feature((data[0][0][index],data[0][1][index]), (data[1][0][index],data[1][1][index]), 1)
 
-				world_map.print_obs_map()
 				ar_tags.unregister()
+				world_map.print_obs_map()
 				print ("NOW Rotate 2")
-				#rotate(1,50)
+				time.sleep(.5)
+				rotate(1,60)
 				#print(pose_theta)
 				last_call = time.time()
 				print(last_call)
-				time.sleep(1.)
+				#time.sleep(1.)
 				#landing_pub.publish(Empty())
-				print ("Shutdown")
-				a_star_out, cost_so_far = astar.a_star(world_map, (0,0), (data[0][0][4],data[0][1][4]))
-				i,j = world_map._world_to_map(data[0][0][4],data[0][1][4])
+				#print ("Shutdown")
+				#print(landing)
+				#landing = (landing[0]+.2,landing[1])
+				#print(landing)
+				landing = (round(landing[0] - landing[0]%0.1,2), round(landing[1] - landing[1]%0.1,2)) 
+				a_star_out, cost_so_far = astar.a_star(world_map, (0,0), landing)
+				#i,j = world_map._world_to_map(landing[0],landing[1])
 				#print(a_star_out)
-				path = astar.path(a_star_out, (0,0), world_map._map_to_world(i,j))
+				# for key,value in a_star_out:
+				# 	print(key)
+
+				path = astar.path(a_star_out, (0,0), landing)
 				print (path)
 				print("Done with A_Star")
 				#print(path[1][1])
 					# if path[1][1]>path[1][0]: #traversing y initially
-				time.sleep(1.)
+				time.sleep(3.)
 				STATE = 3
 		
 		if STATE == 3:
@@ -283,7 +298,7 @@ def main():
 			#time.sleep(3.)
 
 
-	#landing_pub.publish(Empty())
+	landing_pub.publish(Empty())
 	print ("Shutdown")
 
 if __name__ == '__main__':

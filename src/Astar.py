@@ -85,13 +85,17 @@ def a_star(graph, start, goal):
 
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
+	print(current)
 	path = []
 	path.append((-10,-10))
 	while current != start:
+		#print(current)
 		path.append(current)
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
+	path[1] = (path[1][0]+.5, path[1][1]-.9)
+	print(path[1])
 	path.reverse()
 	#print("long path",path)
 
