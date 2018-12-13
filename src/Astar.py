@@ -73,6 +73,8 @@ def a_star(graph, start, goal):
 				priority = newcost + dist_to_goal(goal, nextthing[0])
 				frontier.put(nextthing[0], priority)
 				camefrom[nextthing[0]] = current
+			else:
+				camefrom[nextthing[0]] = default
 
 	return camefrom, costsofar
 
