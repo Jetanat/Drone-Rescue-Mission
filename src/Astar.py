@@ -36,14 +36,6 @@ class Grid:
 		results = filter(self.passable, results)
 		return results
 
-#class GridWeights(Grid):
-#	def __init__(self, width, height):
-#		super().__init__(width, height)
-#		self.weights = {}
-#
-#	def cost(self, fromnode, tonode):
-#		return self.weights.get(tonode, 1)
-
 def cost(fromnode, tonode):
 	from_y = fromnode[1]
 	from_x = fromnode[0]
@@ -65,6 +57,7 @@ def a_star(graph, start, goal):
 	costsofar = {}
 	camefrom[start] = None
 	costsofar[start] = 0
+	default = 0
 
 	while not frontier.empty(): #If the grid is not empty
 		current = frontier.get() #Pop the current element 
