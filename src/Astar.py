@@ -85,15 +85,19 @@ def a_star(graph, start, goal):
 
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
+	print(current)
 	path = []
-	path.append((-1,-1))
+	path.append((-10,-10))
 	while current != start:
+		#print(current)
 		path.append(current)
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
+	path[1] = (path[1][0]+.5, path[1][1]-.9)
+	print(path[1])
 	path.reverse()
-	print("long path",path)
+	#print("long path",path)
 
 	prev_pose = (0,0)
 	d=None
@@ -116,63 +120,18 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	if newPath[-1] != path[-1]:
 	   newPath.append(path[-1])
 
-	print("short path",newPath)
+	#print("short path",newPath)
 
-	return path
-
-	# current = goal
-	# d = None 
-	# path = []
-	# path.append((-1,-1))
-	# while current != start:
-	# 	if not path:
-	# 		path.append(current)
-	# 	else:
-	# 		if d is None:
-	# 			if path[-1][0]==current[0]:
-	# 				d = 0
-	# 			else:
-	# 				d = 1
-	# 		if path[-1][d]!=current[d]:
-	# 			path.append(current)
-	# 			d = None
-	# 	#path.append(current)
-	# 	new_numbers = camefrom[current]
-	# 	current = new_numbers
-	# path.append(start)
-	# path.reverse()
-	# return path
-
-# 	k = [[1,1],[1,2],[1,3],[2,3],[2,2]]
-
-# d=None
-# newPath=[]
-# for pose in k:
-#     if not newPath:
-#         newPath.append(pose)
-#     else:
-#         if d is None:
-#             if newPath[-1][0]==pose[0]:
-#                 d=0
-#             else:
-#                 d=1
-#         if newPath[-1][d]!=pose[d]:
-#             newPath.append(pose)
-#             d=None
-
-# if newPath[-1] != k[-1]:
-#    newPath.append(k[-1])
-
-#print(newPath)
+	return newPath
 
 def main():
-	p.world_map = WorldMap()
-	p.world_map.set_feature((1,.15),(1,0.25), OBSTACLE)
-	p.world_map.set_feature((1.5,0.8),(1.7,1), GOAL)
-	p.world_map.inflate()
-	p.world_map.print_obs_map()
+	world_map = p.WorldMap()
+	world_map.set_feature((1,.15),(1,0.25), 0)
+	world_map.set_feature((1.5,0.8),(1.7,1), 1)
+	world_map.inflate()
+	world_map.print_obs_map()
 
-	path(a_star(p.world_map, (0,0), (5,5)), (0,0), (5,5))
+	path(a_star(world_map, (0,0), (5,5)), (0,0), (5,5))
 if __name__ == "__main__":
 	main()
 	exit(0)
