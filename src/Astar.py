@@ -126,11 +126,11 @@ def main():
 	world_map = p.WorldMap()
 	world_map.set_feature((1,.15),(1,0.25), 0)
 	world_map.set_feature((1.5,0.8),(1.7,1), 1)
-	world_map.set_feature((2.7,2.3),(2.7,2.3),3)
+	world_map.set_feature((1.8,1.3),(1.8,1.3),3)
 	world_map.inflate()
 	world_map.print_obs_map()
 
-	path(a_star(world_map, (0,0), (2.7,2.3))[0], (0,0), (2.7,2.3))
+	path(a_star(world_map, (0,0), (1.8,1.3))[0], (0,0), (1.8,1.3))
 if __name__ == "__main__":
 	main()
 	exit(0)
