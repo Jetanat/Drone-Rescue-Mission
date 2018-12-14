@@ -39,10 +39,10 @@ class Grid:
 def cost(fromnode, tonode):
 	from_y = fromnode[1]
 	from_x = fromnode[0]
-	to_ylist = [i[1] for i in tonode]
-	to_xlist = [i[0] for i in tonode]
-	to_y = to_ylist[0]
-	to_x = to_xlist[0]
+	#to_ylist = [i[1] for i in tonode]
+	#to_xlist = [i[0] for i in tonode]
+	to_y = tonode[1]
+	to_x = tonode[0]
 	return 10 if to_y - from_y and to_x - from_x else 5
 
 def dist_to_goal(a, b): #Simple distance heruristic
@@ -61,36 +61,39 @@ def a_star(graph, start, goal):
 
 	while not frontier.empty(): #If the grid is not empty
 		current = frontier.get() #Pop the current element 
-
+	#	print("curr: %s" %str(current))
 		if (current == goal): 
 			break
 
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
 			newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
-			if nextthing[0] not in costsofar or newcost < costsofar[nextthing[0]]: #Update
-				costsofar[nextthing[0]] = newcost
-				priority = newcost + dist_to_goal(goal, nextthing[0])
-				frontier.put(nextthing[0], priority)
-				camefrom[nextthing[0]] = current
-			else:
-				camefrom[nextthing[0]] = default
+			if nextthing not in costsofar or newcost < costsofar[nextthing]: #Update
+	#			print("next: %s" %str(nextthing))
+				costsofar[nextthing] = newcost
+				priority = newcost + dist_to_goal(goal, nextthing)
+				frontier.put(nextthing, priority)
+				camefrom[nextthing] = current
+		#	else:
+		#		camefrom[nextthing] = default
 
 	return camefrom, costsofar
 
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
-	print(current)
+	#print(current)
 	path = []
 	path.append((-10,-10))
+	#print(camefrom)
 	while current != start:
-		#print(current)
 		path.append(current)
+	#	print("foo %s" %str(current))
+		
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
 	path[1] = (path[1][0]+.5, path[1][1]-.9)
-	print(path[1])
+	#print(path[1])
 	path.reverse()
 	#print("long path",path)
 
@@ -123,10 +126,11 @@ def main():
 	world_map = p.WorldMap()
 	world_map.set_feature((1,.15),(1,0.25), 0)
 	world_map.set_feature((1.5,0.8),(1.7,1), 1)
+	world_map.set_feature((1.8,1.3),(1.8,1.3),3)
 	world_map.inflate()
 	world_map.print_obs_map()
 
-	path(a_star(world_map, (0,0), (5,5)), (0,0), (5,5))
+	path(a_star(world_map, (0,0), (1.8,1.3))[0], (0,0), (1.8,1.3))
 if __name__ == "__main__":
 	main()
 	exit(0)

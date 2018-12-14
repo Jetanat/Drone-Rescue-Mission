@@ -87,6 +87,7 @@ class WorldMap:
 
     def neighbors(self, cell):
         i, j = self._world_to_map(cell[0], cell[1])
+#	print("i,j %s,%s" %(i,j))
         neigh = []
         if self._is_open(i-1,j) and i>0:
             neigh.append((self._map_to_world(i-1,j)))
@@ -97,6 +98,8 @@ class WorldMap:
         if self._is_open(i,j+1) and j+1<=2*MAP_MAX_Y/MAP_RESOLUTION-1:
             neigh.append((self._map_to_world(i,j+1)))
         #print(neigh)
+        neigh = [(round(x,2), round(y,2)) for x,y in neigh]
+ #       print("neigh %s" %str(neigh))
         return neigh
 
     def dist_to_goal(self, cell):
