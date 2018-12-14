@@ -13,9 +13,9 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 25.0
+FLIGHT_TIME = 15.0
 STATE = 0
-READ_INTERVAL = 10.0
+READ_INTERVAL = 2.0
 PI = 3.1415926535897
 angular_speed = 45*2*PI/360 	#45 degrees per second
 linear_speed = 0.5
@@ -182,8 +182,8 @@ def main():
 
 	time.sleep(1.)
     #takeoff and start run timer
-	#takeoff_pub.publish(Empty())
-	#time.sleep(3.)
+	takeoff_pub.publish(Empty())
+	time.sleep(3.)
 	print ("Takeoff! Flight time is %f." % FLIGHT_TIME)
 	
 	path = []
@@ -209,7 +209,7 @@ def main():
 				print ("NOW Rotate 0")
 				#turn clockwise 50 deg to read ar tags
 				time.sleep(.5)
-				#rotate(1,45)
+				rotate(1,50)
 				last_call = time.time()
 				print(last_call)
 				STATE = 1
@@ -229,7 +229,7 @@ def main():
 				print ("NOW Rotate 1")
 				#turn to counter-clockwise 45 deg to read ar tags
 				time.sleep(.5)
-				#rotate(0,90)
+				rotate(0,90)
 				last_call = time.time()
 				print(last_call)
 				STATE = 2
@@ -252,7 +252,7 @@ def main():
 				world_map.print_obs_map()
 				print ("NOW Rotate 2")
 				time.sleep(.5)
-				#rotate(1,45)
+				rotate(1,45)
 				last_call = time.time()
 				print(last_call)
 				#print(landing)
