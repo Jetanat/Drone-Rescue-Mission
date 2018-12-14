@@ -89,13 +89,13 @@ class WorldMap:
         i, j = self._world_to_map(cell[0], cell[1])
         neigh = []
         if self._is_open(i-1,j) and i>0:
-            neigh.append([self._map_to_world(i-1,j)])
+            neigh.append((self._map_to_world(i-1,j)))
         if self._is_open(i+1,j) and i+1<=2*MAP_MAX_X/MAP_RESOLUTION-1:
-            neigh.append([self._map_to_world(i+1,j)])
+            neigh.append((self._map_to_world(i+1,j)))
         if self._is_open(i,j-1) and j>0:
-            neigh.append([self._map_to_world(i,j-1)])
+            neigh.append((self._map_to_world(i,j-1)))
         if self._is_open(i,j+1) and j+1<=2*MAP_MAX_Y/MAP_RESOLUTION-1:
-            neigh.append([self._map_to_world(i,j+1)])
+            neigh.append((self._map_to_world(i,j+1)))
         #print(neigh)
         return neigh
 
