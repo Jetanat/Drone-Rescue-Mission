@@ -13,7 +13,7 @@ import dlib
 import pathPlanner as planner
 import Astar as astar
 
-FLIGHT_TIME = 15.0
+FLIGHT_TIME = 30.0
 STATE = 0
 READ_INTERVAL = 2.0
 PI = 3.1415926535897
@@ -78,6 +78,7 @@ def y_translate(direction,length):
 	global drone_pub
 	#forward = 1
 	vel_msg = Twist()
+	#print("y here")
 	if direction:
 		vel_msg.linear.y = abs(linear_speed) 
 	else:
@@ -85,7 +86,7 @@ def y_translate(direction,length):
 
 	t0 = time.time()
 	current_linear = 0
-	relative_linear = length - length*0.6 
+	relative_linear = length - length*0.65 
 
 	while(current_linear < relative_linear):
 		drone_pub.publish(vel_msg)
@@ -109,23 +110,24 @@ def set_pose_destination(pose_x,pose_y):
 	if x > 0:
 		print("x forward")
 		x_translate(1,x)
-		#time.sleep(.1)
+		time.sleep(.5)
 
 	if x < 0:
 		print("x backward")
 		x_translate(0,x)
-		#time.sleep(.1)
+		time.sleep(.5)
 
 	if y > 0:
 		print("y forward")
 		y_translate(1,y)
-		#time.sleep(.1)
+		time.sleep(.5)
 
 	if y < 0:
 		print("y backward")
 		y_translate(0,y)
-		#time.sleep(.1)
-
+		time.sleep(.5)
+	
+	time.sleep(.5)
 	return
 
 
@@ -193,9 +195,11 @@ def main():
 	landing = []
 	#while loop for states and flight time
 	while not rospy.is_shutdown() and time.time() - start_time < FLIGHT_TIME:
-		br.sendTransform((0.0,0.0,0.0),tf.transformations.quaternion_from_euler(0.0,0.0,0.23), rospy.Time.now(),"fixed","odom")
+		br.sendTransform((0.0,0.0,0.0),tf.transformations.quaternion_from_euler(0.0,0.0,-0.70), rospy.Time.now(),"fixed","odom")
 		if STATE == 0:
 			if time.time() - last_call > READ_INTERVAL:
+				set_pose_destination(0,0)
+				time.sleep(.5)
 				data = planner.currentAreaCoor #([lowtuple], [hightuple])
 				print(data)
 				for index in range(0,6):
@@ -209,7 +213,7 @@ def main():
 				print ("NOW Rotate 0")
 				#turn clockwise 50 deg to read ar tags
 				time.sleep(.5)
-				rotate(1,50)
+				rotate(1,65)
 				last_call = time.time()
 				print(last_call)
 				STATE = 1
@@ -229,7 +233,7 @@ def main():
 				print ("NOW Rotate 1")
 				#turn to counter-clockwise 45 deg to read ar tags
 				time.sleep(.5)
-				rotate(0,90)
+				rotate(0,100)
 				last_call = time.time()
 				print(last_call)
 				STATE = 2
@@ -251,14 +255,16 @@ def main():
 				ar_tags.unregister()
 				world_map.print_obs_map()
 				print ("NOW Rotate 2")
+				set_pose_destination(0,0)
 				time.sleep(.5)
-				rotate(1,45)
+				rotate(1,50)
 				last_call = time.time()
 				print(last_call)
-				#print(landing)
+				print(landing)
 				#landing = (landing[0]+.2,landing[1])
 				#print(landing)
-				landing = (round(landing[0] - landing[0]%0.1,2), round(landing[1] - landing[1]%0.1,2)) 
+				landing = (round(landing[0],1), round(landing[1],1)) 
+				print(landing)
 				a_star_out, cost_so_far = astar.a_star(world_map, (0,0), landing)
 				#print(a_star_out)
 				# for key,value in a_star_out:
@@ -270,18 +276,17 @@ def main():
 				STATE = 3
 		
 		if STATE == 3:
-			temp = 0
-			#mirco_plan(path)
+			mirco_plan(path)
 		
 		if STATE == 4:
 			print("DONE!")
 			time.sleep(1.)
+			landing_pub.publish(Empty())
 			FLIGHT_TIME = 0
-    		#landing_pub.publish(Empty())
 			#time.sleep(3.)
 
 
-	#landing_pub.publish(Empty())
+	landing_pub.publish(Empty())
 	print ("Shutdown")
 
 if __name__ == '__main__':

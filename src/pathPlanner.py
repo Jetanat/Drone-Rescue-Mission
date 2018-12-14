@@ -66,9 +66,9 @@ class WorldMap:
         if j < 0:
             j=0
         if i >= len(self._map):
-            i = len(self._map)
+            i = len(self._map)-1
         if j >= len(self._map[0]):
-            j = len(self._map[0])
+            j = len(self._map[0])-1
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
@@ -150,7 +150,7 @@ def return_area_detected(data):
     global obj_width
     global obj_length
     global currentAreaCoor
-    shift_x = 0.3
+    shift_x = 0.0
 
     dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
     dict_param_x_low = {0:-env_width/2 + shift_x, 2:-obj_width/2 + shift_x, 8:-obj_width/2 + shift_x, 9:-obj_width/2 + shift_x,11:0 + shift_x,17:0 + shift_x}
