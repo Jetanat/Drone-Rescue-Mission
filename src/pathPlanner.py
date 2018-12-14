@@ -59,8 +59,8 @@ class WorldMap:
         self._goal=None
 
     def _world_to_map(self,x,y):
-        i = round(x-MAP_MIN_X,2)/MAP_RESOLUTION
-        j = round(y-MAP_MIN_Y,2)/MAP_RESOLUTION
+        i = round(round(x-MAP_MIN_X,2)/MAP_RESOLUTION)
+        j = round(round(y-MAP_MIN_Y,2)/MAP_RESOLUTION)
         if i < 0:
             i=0
         if j < 0:
@@ -72,14 +72,14 @@ class WorldMap:
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
-        x = round((i-MAP_MAX_X/MAP_RESOLUTION)*MAP_RESOLUTION,2)
-        y = round((j-MAP_MAX_Y/MAP_RESOLUTION)*MAP_RESOLUTION,2)
+        x = round((i*MAP_RESOLUTION)+MAP_MIN_X,2)
+        y = round((j*MAP_RESOLUTION)+MAP_MIN_Y,2)
         return x,y
 
     def _is_open(self, i, j):
         if i<0 or j<0:
             return False
-        if i>=len(self._map) or j>=len(self._map[0]:
+        if i>=len(self._map) or j>=len(self._map[0]):
             return False
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 

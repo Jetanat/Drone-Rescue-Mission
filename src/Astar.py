@@ -64,15 +64,17 @@ def a_star(graph, start, goal):
 	#	print("curr: %s" %str(current))
 		if (current == goal): 
 			break
-
+		cost = costsofar[current]+1
+		#print("curr %s neigh: %s" %(str(current), str(graph.neighbors(current))))	
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
-			newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
+			
+#newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
-			if nextthing not in costsofar or newcost < costsofar[nextthing]: #Update
+			if (nextthing not in costsofar or cost < costsofar[nextthing]) and nextthing != start: #Update
 	#			print("next: %s" %str(nextthing))
-				costsofar[nextthing] = newcost
-				priority = newcost + dist_to_goal(goal, nextthing)
-				frontier.put(nextthing, priority)
+				costsofar[nextthing] = cost #newcost
+				#priority = newcost + dist_to_goal(goal, nextthing)
+				frontier.put(nextthing, 0)#priority)
 				camefrom[nextthing] = current
 		#	else:
 		#		camefrom[nextthing] = default
@@ -89,6 +91,7 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 		path.append(current)
 	#	print("foo %s" %str(current))
 		
+		#print(camefrom)
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
