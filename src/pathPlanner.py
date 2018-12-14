@@ -74,8 +74,8 @@ class WorldMap:
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
-        x = round((i-20)*MAP_RESOLUTION,2)
-        y = round((j-20)*MAP_RESOLUTION,2)
+        x = round((i-MAP_MAX_X/MAP_RESOLUTION)*MAP_RESOLUTION,2)
+        y = round((j-MAP_MAX_Y/MAP_RESOLUTION)*MAP_RESOLUTION,2)
         return x,y
 
     def _is_open(self, i, j):
@@ -148,10 +148,12 @@ def return_area_detected(data):
 	global obj_length
 	global currentAreaCoor
 
+    shift_x = 0.5
+
 	dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
-	dict_param_x_low = {0:-env_width/2, 2:-obj_width/2, 8:-obj_width/2, 9:-obj_width/2,11:0,17:0}
+	dict_param_x_low = {0:-env_width/2 + shift_x, 2:-obj_width/2 + shift_x, 8:-obj_width/2 + shift_x, 9:-obj_width/2 + shift_x,11:0 + shift_x,17:0 + shift_x}
 	dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,17:-env_length/2}
-	dict_param_x_high = {0:+env_width/2, 2:+obj_width/2, 8:+obj_width/2, 9:+obj_width/2,11:0,17:0}
+	dict_param_x_high = {0:+env_width/2 + shift_x, 2:+obj_width/2 + shift_x, 8:+obj_width/2 + shift_x, 9:+obj_width/2 + shift_x,11:0 + shift_x,17:0 + shift_x}
 	dict_param_y_high = {0:0, 2:+obj_length/2, 8:+obj_length/2, 9:+obj_length/2,11:0,17:+env_length/2}
 
 	lowest_left_x = {}

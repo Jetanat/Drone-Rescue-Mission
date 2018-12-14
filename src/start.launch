@@ -7,7 +7,7 @@
 	<arg name="cam_image_topic" default="/bebop/image_raw" />
 	<arg name="cam_info_topic" default="/bebop/camera_info" />
 	        
-		<arg name="output_frame" default="odom" />
+		<arg name="output_frame" default="fixed" />
 		<arg name="bundle_files" default="$(find Drone-Rescue-Mission)/src/bundles/tag0.xml $(find Drone-Rescue-Mission)/src/bundles/tag4.xml $(find Drone-Rescue-Mission)/src/bundles/tag8.xml $(find Drone-Rescue-Mission)/src/bundles/tag9.xml $(find Drone-Rescue-Mission)/src/bundles/tag11.xml $(find Drone-Rescue-Mission)/src/bundles/tag17.xml" />
 
 	<node name="ar_track_alvar" pkg="ar_track_alvar" type="findMarkerBundlesNoKinect" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame) $(arg bundle_files)" />
