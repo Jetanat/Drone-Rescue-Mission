@@ -59,18 +59,16 @@ class WorldMap:
         self._goal=None
 
     def _world_to_map(self,x,y):
-        x = x-MAP_MIN_X+MAP_RESOLUTION/2
-        y = y-MAP_MIN_Y+MAP_RESOLUTION/2
-        i = (x-x%MAP_RESOLUTION)/MAP_RESOLUTION
-        j = (y-y%MAP_RESOLUTION)/MAP_RESOLUTION
+        i = round(x-MAP_MIN_X,2)/MAP_RESOLUTION
+        j = round(y-MAP_MIN_Y,2)/MAP_RESOLUTION
         if i < 0:
             i=0
         if j < 0:
             j=0
-        if i > (MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION:
-            i = (MAP_MAX_X-MAP_MIN_X)/MAP_RESOLUTION
-        if j > (MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION:
-            j = (MAP_MAX_Y-MAP_MIN_Y)/MAP_RESOLUTION
+        if i >= len(self._map):
+            i = len(self._map)
+        if j >= len(self._map[0]):
+            j = len(self._map[0])
         return int(i),int(j)
 
     def _map_to_world(Self, i, j):
@@ -81,7 +79,7 @@ class WorldMap:
     def _is_open(self, i, j):
         if i<0 or j<0:
             return False
-        if i>2*MAP_MAX_X/MAP_RESOLUTION or j>2*MAP_MAX_Y/MAP_RESOLUTION:
+        if i>=len(self._map) or j>=len(self._map[0]:
             return False
         return self._map[i][j]==OPEN or self._map[i][j]==GOAL
 
@@ -89,13 +87,13 @@ class WorldMap:
         i, j = self._world_to_map(cell[0], cell[1])
 #	print("i,j %s,%s" %(i,j))
         neigh = []
-        if self._is_open(i-1,j) and i>0:
+        if self._is_open(i-1,j):
             neigh.append((self._map_to_world(i-1,j)))
-        if self._is_open(i+1,j) and i+1<=2*MAP_MAX_X/MAP_RESOLUTION-1:
+        if self._is_open(i+1,j):
             neigh.append((self._map_to_world(i+1,j)))
-        if self._is_open(i,j-1) and j>0:
+        if self._is_open(i,j-1):
             neigh.append((self._map_to_world(i,j-1)))
-        if self._is_open(i,j+1) and j+1<=2*MAP_MAX_Y/MAP_RESOLUTION-1:
+        if self._is_open(i,j+1):
             neigh.append((self._map_to_world(i,j+1)))
         #print(neigh)
         neigh = [(round(x,2), round(y,2)) for x,y in neigh]
@@ -103,7 +101,7 @@ class WorldMap:
         return neigh
 
     def dist_to_goal(self, cell):
-        if(self.goal == None):
+        if(self._goal == None):
             return -1
         i,j = self._world_to_map(cell[0],cell[1])
         return ((i-self._goal[0])**2 + (j-self._goal[1])**2)**0.5
@@ -121,6 +119,8 @@ class WorldMap:
                 self._map[i][j] = status
                 if status == OBSTACLE:
                     self._inflate_cell(i,j)
+                if status == GOAL:
+                    self._goal == (i,j)
 
     def _inflate_cell(self, c_i, c_j):
         radius=int(ROBOT_RADIUS/MAP_RESOLUTION)
