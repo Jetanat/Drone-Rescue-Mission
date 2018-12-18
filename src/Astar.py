@@ -8,11 +8,10 @@ class PriorityQueue:
 	def empty(self):
 		return len(self.elements) == 0
 
-	def put(self, item, priority):
-		#print("This is Heap", heapq.nlargest(len(self.elements),(priority, item)))
+	def put(self, item, priority): #Pushes elements from the queue in order of priority
 		heapq.heappush(self.elements, (priority, item))
 
-	def get(self):
+	def get(self): #Pops elements from the queue in order of priority
 		return heapq.heappop(self.elements)[1]
 
 class Grid:
@@ -21,14 +20,14 @@ class Grid:
 		self.height = height
 		self.walls = []
 
-	def inbound(self, id):
+	def inbound(self, id):#Looks to see if an item exists within the bounds
 		(x, y) = id
 		return 0 <= x < self.width and 0 <= y < self.height
 
-	def passable(self, id):
+	def passable(self, id): #Looks to see if a cell is passable
 		return id not in self.walls
 
-	def neighbors(self, id):
+	def neighbors(self, id): #Looks at all neighbors of the current cell
 		(x, y) = id
 		results = [(x+1, y), (x, y-1), (x-1, y), (x, y+1)]
 		if (x + y) % 2 == 0: results.reverse() 
@@ -36,16 +35,14 @@ class Grid:
 		results = filter(self.passable, results)
 		return results
 
-def cost(fromnode, tonode):
+def cost(fromnode, tonode): #Cost function used for A* 
 	from_y = fromnode[1]
 	from_x = fromnode[0]
-	#to_ylist = [i[1] for i in tonode]
-	#to_xlist = [i[0] for i in tonode]
 	to_y = tonode[1]
 	to_x = tonode[0]
 	return 10 if to_y - from_y and to_x - from_x else 5
 
-def dist_to_goal(a, b): #Simple distance heruristic
+def dist_to_goal(a, b): #Simple distance heuristic placeholder for heuristic in pathPlanner
 	(x1, y1) = a
 	(x2, y2) = b
 	return abs(x1 - x2) + abs(y1 - y2)
@@ -61,45 +58,31 @@ def a_star(graph, start, goal):
 
 	while not frontier.empty(): #If the grid is not empty
 		current = frontier.get() #Pop the current element 
-	#	print("curr: %s" %str(current))
 		if (current == goal): 
 			break
 		cost = costsofar[current]+1
-		#print("curr %s neigh: %s" %(str(current), str(graph.neighbors(current))))	
 		for nextthing in graph.neighbors(current): #Looks at neighbors of the current cell 
 			
 #newcost = costsofar[current] + cost(current, nextthing) #Looks at costs of moving to other cells
 
 			if (nextthing not in costsofar or cost < costsofar[nextthing]) and nextthing != start: #Update
-	#			print("next: %s" %str(nextthing))
 				costsofar[nextthing] = cost #newcost
 				#priority = newcost + dist_to_goal(goal, nextthing)
-				frontier.put(nextthing, 0)#priority)
+				frontier.put(nextthing, 0) #priority)
 				camefrom[nextthing] = current
-		#	else:
-		#		camefrom[nextthing] = default
-
 	return camefrom, costsofar
 
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
-	#print(current)
 	path = []
 	path.append((-10,-10))
-	#print(camefrom)
 	while current != start:
 		path.append(current)
-	#	print("foo %s" %str(current))
-		
-		#print(camefrom)
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
 	path[1] = (path[1][0]+.5, path[1][1]-.9)
-	#print(path[1])
 	path.reverse()
-	#print("long path",path)
-
 	prev_pose = (0,0)
 	d=None
 	newPath=[]
@@ -121,11 +104,9 @@ def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	if newPath[-1] != path[-1]:
 	   newPath.append(path[-1])
 
-	#print("short path",newPath)
-
 	return newPath
 
-def main():
+def main(): # Testing within python interpreter
 	world_map = p.WorldMap()
 	world_map.set_feature((1,.15),(1,0.25), 0)
 	world_map.set_feature((1.5,0.8),(1.7,1), 1)
