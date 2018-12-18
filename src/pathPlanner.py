@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import heapq
-#import rospy
+import rospy
 import math
-#from std_msgs.msg import String
-#from ar_track_alvar_msgs.msg import AlvarMarkers
-#from ar_track_alvar_msgs.msg import AlvarMarker
+from std_msgs.msg import String
+from ar_track_alvar_msgs.msg import AlvarMarkers
+from ar_track_alvar_msgs.msg import AlvarMarker
 
 ###############################################################################
 
