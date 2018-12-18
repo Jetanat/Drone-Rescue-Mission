@@ -182,6 +182,7 @@ def return_area_detected(data):
     global currentAreaCoor
     shift_x = 0.0
 
+    #setting ([lowtuple],[hightuple]) coordinate expansions for the drone to move around
     dict_printer = {0:"wall_width", 2:"obstacle_one", 8:"obstacle_two", 9:"obstacle_three",11:"landing",17:"wall_length"}
     dict_param_x_low = {0:-env_width/2 + shift_x, 2:-obj_width/2 + shift_x, 8:-obj_width/2 + shift_x, 9:-obj_width/2 + shift_x,11:0 + shift_x,17:0 + shift_x}
     dict_param_y_low = {0:0, 2:-obj_length/2, 8:-obj_length/2, 9:-obj_length/2,11:0,17:-env_length/2}

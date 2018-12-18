@@ -75,14 +75,15 @@ def a_star(graph, start, goal):
 def path(camefrom, start, goal): #Translates camefrom list into an actual path
 	current = goal
 	path = []
+	# (-10,-10) chosen because it is known to be outside of all possible poses
 	path.append((-10,-10))
 	while current != start:
 		path.append(current)
 		new_numbers = camefrom[current]
 		current = new_numbers
 	path.append(start)
-	path[1] = (path[1][0]+.5, path[1][1]-.9)
 	path.reverse()
+	#now shorten the path so the drone makes smoother movements
 	prev_pose = (0,0)
 	d=None
 	newPath=[]
